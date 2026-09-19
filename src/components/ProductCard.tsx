@@ -36,7 +36,15 @@ export default function ProductCard({ product }: ProductCardProps) {
 
       <Link to={`/produto/${product.id}`} className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded">
         <div className="w-full bg-slate-50 rounded-sm overflow-hidden">
-          <img src={product.imageUrl} alt={product.name} className="w-full aspect-square object-cover object-top" />
+          <img
+            src={product.imageUrl}
+            alt={product.name}
+            width={400}
+            height={400}
+            loading="lazy"
+            decoding="async"
+            className="w-full aspect-square object-cover object-top"
+          />
         </div>
 
         <div className="py-4 px-2 text-left">

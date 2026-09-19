@@ -17,7 +17,15 @@ function CartItemRow ({
     return (
         <li className="flex flex-col gap-6 py-6 sm:items-center sm:flex-row">
             <div className="w-32 h-full shrink-0">
-                <img src={item.imageUrl} className="w-full aspect-full object-contain" alt={item.name} />
+                <img
+                    src={item.imageUrl}
+                    alt={item.name}
+                    width={128}
+                    height={128}
+                    loading="lazy"
+                    decoding="async"
+                    className="w-full aspect-full object-contain"
+                />
             </div>
 
             <div className="flex items-start gap-4 w-full">

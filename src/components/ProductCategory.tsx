@@ -15,6 +15,7 @@ const ProductCategory: React.FC = () => {
                         <a href="#" className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded">
                             <div className="overflow-hidden aspect-square">
                                 <img src="https://readymadeui.com/images/sunscreen-img-1.webp" alt="Sunscreen"
+                                    width={300} height={300} loading="lazy" decoding="async"
                                     className="h-full w-full object-cover object-top rounded-xl" />
                             </div>
                             <div className="mt-4 text-center">
@@ -26,6 +27,7 @@ const ProductCategory: React.FC = () => {
                         <a href="#" className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded">
                             <div className="overflow-hidden aspect-square">
                                 <img src="https://readymadeui.com/images/sunscreen-img-2.webp" alt="Face Wash"
+                                    width={300} height={300} loading="lazy" decoding="async"
                                     className="h-full w-full object-cover object-top rounded-xl" />
                             </div>
                             <div className="mt-4 text-center">
@@ -37,6 +39,7 @@ const ProductCategory: React.FC = () => {
                         <a href="#" className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded">
                             <div className="overflow-hidden aspect-square">
                                 <img src="https://readymadeui.com/images/sunscreen-img-3.webp" alt="Skin Glow"
+                                    width={300} height={300} loading="lazy" decoding="async"
                                     className="h-full w-full object-cover object-top rounded-xl" />
                             </div>
                             <div className="mt-4 text-center">
@@ -48,6 +51,7 @@ const ProductCategory: React.FC = () => {
                         <a href="#" className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded">
                             <div className="overflow-hidden aspect-square">
                                 <img src="https://readymadeui.com/images/sunscreen-img-4.webp" alt="Dry Shampoo"
+                                    width={300} height={300} loading="lazy" decoding="async"
                                     className="h-full w-full object-cover object-top rounded-xl" />
                             </div>
                             <div className="mt-4 text-center">
@@ -59,6 +63,7 @@ const ProductCategory: React.FC = () => {
                         <a href="#" className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded">
                             <div className="overflow-hidden aspect-square">
                                 <img src="https://readymadeui.com/images/sunscreen-img-5.webp" alt="Body Butter"
+                                    width={300} height={300} loading="lazy" decoding="async"
                                     className="h-full w-full object-cover object-top rounded-xl" />
                             </div>
                             <div className="mt-4 text-center">
@@ -70,6 +75,7 @@ const ProductCategory: React.FC = () => {
                         <a href="#" className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded">
                             <div className="overflow-hidden aspect-square">
                                 <img src="https://readymadeui.com/images/sunscreen-img-6.webp" alt="Face Primer"
+                                    width={300} height={300} loading="lazy" decoding="async"
                                     className="h-full w-full object-cover object-top rounded-xl" />
                             </div>
                             <div className="mt-4 text-center">
@@ -81,6 +87,7 @@ const ProductCategory: React.FC = () => {
                         <a href="#" className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded">
                             <div className="overflow-hidden aspect-square">
                                 <img src="https://readymadeui.com/images/body-motion-category.webp" alt="Body Lotion"
+                                    width={300} height={300} loading="lazy" decoding="async"
                                     className="h-full w-full object-cover object-top rounded-xl" />
                             </div>
                             <div className="mt-4 text-center">

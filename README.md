@@ -14,7 +14,7 @@ O projeto tem duas áreas:
 | Camada | Tecnologia |
 | --- | --- |
 | UI | React 19, React Router 7, Tailwind CSS 4, lucide-react (ícones) |
-| Build | Vite 8, TypeScript 6, React Compiler (babel-plugin-react-compiler) |
+| Build | Vite 8 (rolldown), TypeScript 6, React Compiler via `@rolldown/plugin-babel` |
 | Backend | Firebase 12 — Cloud Firestore + Authentication |
 | Validação | Zod 4 |
 | CSV | PapaParse 5 |
@@ -194,6 +194,20 @@ src/
 ```
 
 Os providers são montados em `App.tsx` na ordem `AuthProvider → CartProvider`: o carrinho depende do usuário autenticado, e limpa seu estado no logout.
+
+---
+
+## Performance
+
+Algumas decisões do build e do código não são óbvias à primeira leitura:
+
+**Chunks.** As rotas de admin são carregadas com `React.lazy`, porque elas puxam Zod e PapaParse — peso morto para quem só quer comprar. Firebase e o core do React ficam em chunks próprios (`codeSplitting.groups` no `vite.config.ts`) para seguirem em cache do navegador entre deploys. O build ainda avisa que um chunk passa de 500 kB: é o do Firebase, que é o piso desta arquitetura, já que Firestore e Auth são inicializados logo na primeira tela. O aviso é informativo — não vale silenciá-lo com `chunkSizeWarningLimit`.
+
+**Paginação.** `ProductList` busca 24 produtos por vez e pagina com `startAfter`. O cursor é o `QueryDocumentSnapshot` do último item, **não** o valor de `createdAt`: a importação em lote grava `serverTimestamp()` em centenas de produtos quase no mesmo instante, e só o snapshot desempata (pelo `__name__` implícito) sem pular nem repetir itens.
+
+**React Compiler.** Está ativo, então não há `useMemo`/`useCallback`/`React.memo` escritos à mão — nem devem ser adicionados. Em compensação, o compiler da versão 1.0.0 **desiste de memoizar o componente inteiro** ao encontrar `try/finally`, ou `??`/`?.`/ternário dentro de um `try/catch`. É por isso que os blocos de `ProductList` têm o formato repetitivo que têm. Para checar se algum componente parou de compilar, rode o Babel com o `logger` do `babel-plugin-react-compiler` e procure por `CompileError`.
+
+**Imagens.** Cards, categorias e itens do carrinho usam `loading="lazy"`; o hero do Banner e a imagem da página de produto usam `fetchPriority="high"`, porque são o elemento LCP das suas telas. Todas têm `width`/`height` explícitos para não causar layout shift.
 
 ---
 

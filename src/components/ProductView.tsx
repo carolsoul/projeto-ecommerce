@@ -38,7 +38,17 @@ export default function ProductView({ product }: ProductViewProps) {
               </span>
             )}
             <div className="bg-gray-100 rounded overflow-hidden">
-              <img src={product.imageUrl} alt={product.name} className="w-full object-cover" />
+              {/* Imagem principal da página de produto: é o LCP aqui, então
+                  não leva lazy. */}
+              <img
+                src={product.imageUrl}
+                alt={product.name}
+                width={600}
+                height={600}
+                fetchPriority="high"
+                decoding="async"
+                className="w-full object-cover"
+              />
             </div>
           </div>
 

@@ -17,7 +17,18 @@ export const Banner: React.FC<BannerProps> = ({
 }) => {
     return (
         <section className='relative w-full h-[500px] overflow-hidden rounded-lg my-6'>
-            <img src={imageUrl} alt={title} className='absolute inset-0 w-full h-full object-cover' />
+            {/* Hero da Home: é o elemento LCP, então carrega com prioridade
+                alta em vez de lazy — adiar isto atrasaria a métrica. */}
+            <img
+                src={imageUrl}
+                alt={title}
+                width={1600}
+                height={500}
+                loading='eager'
+                fetchPriority='high'
+                decoding='async'
+                className='absolute inset-0 w-full h-full object-cover'
+            />
             <div className="absolute inset-0 bg-black/40 flex flex-col justify-center items-start p-8 text-white">
                 <h2 className='text-4xl font-bold mb-2'>{title}</h2>
                 {subtitle && <p className='text-lg mb-4'>{subtitle}</p>}
