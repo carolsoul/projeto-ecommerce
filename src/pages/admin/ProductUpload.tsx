@@ -1,6 +1,6 @@
 import { useState, type ChangeEvent } from 'react';
 import Papa from 'papaparse';
-import { collection, doc, writeBatch, serverTimestamp } from 'firebase/firestore';
+import { doc, writeBatch, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { productRowSchema } from '../../schemas/productSchema';
 

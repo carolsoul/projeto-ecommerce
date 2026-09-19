@@ -1,6 +1,6 @@
 import { useCart } from '../context/CartContext';
 import { type CartItem } from '../types/cart';
-import { Trash, Heart, Minus, Plus } from 'lucide-react';
+import { Trash, Minus, Plus } from 'lucide-react';
 
 const SHIPPING = 4.0;
 const TAX = 4.0;
@@ -76,7 +76,7 @@ export default function Cart() {
                 ) : (
                     <div className='grid lg:grid-cols-3 gap-12'>
                         <ul className='lg:col-span-2 divide-y divide-slate-300'>
-                            {items.mao((item) => (
+                            {items.map((item) => (
                                 <CartItemRow key={item.sku} item={item} onRemove={removeItem} onQuantityChange={updateQuantity} />
                             ))}
                         </ul>

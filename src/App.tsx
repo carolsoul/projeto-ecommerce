@@ -4,7 +4,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import { CartProvider } from './context/CartContext';
 
 import StoreLayout from './layouts/StoreLayout';
-import CheckoutLayout from './layouts/CheckoutLayout';
+//import CheckoutLayout from './layouts/CheckoutLayout';
 import FooterLayout from './layouts/FooterLayout'
 
 import  Home from './pages/Home';
