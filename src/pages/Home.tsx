@@ -7,7 +7,6 @@ import ProductList from '../components/ProductList';
 const Home: React.FC = () => {
     return (
         <main className='container mx-auto px-4'>
-            <Header />
             <Banner 
                 title="Bem-vindo à nossa loja!"
                 subtitle="Encontre os melhores produtos com descontos incríveis."
