@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, ShoppingBag, Heart, User, Menu, X } from 'lucide-react';
+import { useCart } from '../context/CartContext';
 
 export const Header: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-
+    const { itemCount } = useCart()
     return (
         <header className='bg-white shadow-md sticky top-0 z-50'>
             <div className='container mx-auto px-4 py-3 flex items-center gap-4'>
@@ -42,7 +43,7 @@ export const Header: React.FC = () => {
                     <Link to='/cart' className="relative text-gray-600 hover:text-blue-500 transition-colors">
                         <ShoppingBag size={24} />
                         <span className='absolute -top-2 -right-2 bg-blue-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center'>
-                            0
+                            {itemCount}
                         </span>
                     </Link>
 
