@@ -3,6 +3,7 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import { CartProvider } from './context/CartContext';
+import { WishlistProvider } from './context/WishlistContext';
 
 import StoreLayout from './layouts/StoreLayout';
 //import CheckoutLayout from './layouts/CheckoutLayout';
@@ -11,14 +12,16 @@ import FooterLayout from './layouts/FooterLayout'
 import  Home from './pages/Home';
 import ProductPage from "./pages/ProductPage"
 import Cart from "./pages/Cart";
-//import Whishlist from "./pages/Wishlist";
+import Wishlist from "./pages/Wishlist";
+import Login from "./pages/Login";
+import SignUp from "./pages/SignUp";
 //import Orders from "./pages/Orders";
 //import Checkout from "./pages/Checkout";
 
 
 // As telas de admin ficam em chunks separados: elas carregam Zod e PapaParse,
 // que não têm por que pesar no bundle de quem só quer comprar.
-const Login = lazy(() => import('./pages/admin/Login'));
+const AdminLogin = lazy(() => import('./pages/admin/Login'));
 const ProductUpload = lazy(() => import('./pages/admin/ProductUpload'));
 //import AdminDashboard from './pages/admin/AdminDashboard';
 
@@ -27,6 +30,7 @@ function App() {
     <BrowserRouter>
        <AuthProvider>
         <CartProvider>
+         <WishlistProvider>
           <Suspense fallback={<p className="text-center py-20">Carregando...</p>}>
             <Routes>
               <Route element={<FooterLayout />}>
@@ -34,6 +38,9 @@ function App() {
                   <Route path="/" element={<Home />} />
                   <Route path="/produto/:sku" element={<ProductPage />} />
                   <Route path="/cart" element={<Cart />} />
+                  <Route path="/wishlist" element={<Wishlist />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/signup" element={<SignUp />} />
                 </Route>
 
                 {/* se o Checkout também deve ter footer, mas com header diferente:
@@ -44,13 +51,14 @@ function App() {
               </Route>
 
               {/* Admin fica fora do FooterLayout inteiramente, se não quiser footer lá */}
-              <Route path="/admin/login" element={<Login />} />
+              <Route path="/admin/login" element={<AdminLogin />} />
               <Route element={<ProtectedRoute />}>
                 {/*<Route path="/admin" element={<AdminDashboard />} />*/}
                 <Route path="/admin/products/upload" element={<ProductUpload />} />
               </Route>
             </Routes>
           </Suspense>
+         </WishlistProvider>
         </CartProvider>
       </AuthProvider>
     </BrowserRouter>

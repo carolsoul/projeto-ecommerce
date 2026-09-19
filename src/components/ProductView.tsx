@@ -1,9 +1,11 @@
+import { useNavigate } from 'react-router-dom';
 import { type Product } from '../types/products';
 import StarRating from './StarRating';
 import { getDiscountPercentage } from '../utils/pricing';
 
 import { useCart } from '../context/useCart';
 import { useAuth } from '../context/useAuth';
+import { useWishlist } from '../context/useWishlist';
 
 const HEART_PATH =
   'M45.5 4A18.53 18.53 0 0 0 32 9.86 18.5 18.5 0 0 0 0 22.5C0 40.92 29.71 59 31 59.71a2 2 0 0 0 2.06 0C34.29 59 64 40.92 64 22.5A18.52 18.52 0 0 0 45.5 4ZM32 55.64C26.83 52.34 4 36.92 4 22.5a14.5 14.5 0 0 1 26.36-8.33 2 2 0 0 0 3.27 0A14.5 14.5 0 0 1 60 22.5c0 14.41-22.83 29.83-28 33.14Z';
@@ -17,12 +19,26 @@ export default function ProductView({ product }: ProductViewProps) {
 
   const { addItem } = useCart();
   const { user } = useAuth();
+  const { has, toggleItem } = useWishlist();
+  const navigate = useNavigate();
+
+  const isFavorite = has(product.id);
+  const productPath = `/produto/${product.id}`;
+
   const handleAddToCart = () => {
     if (!user) {
-        alert("Você precisa etar logado para adicionar itens ao carrinho.");
-        return;
+      navigate('/login', { state: { from: productPath } });
+      return;
     }
     addItem(product);
+  };
+
+  const handleToggleFavorite = () => {
+    if (!user) {
+      navigate('/login', { state: { from: productPath } });
+      return;
+    }
+    toggleItem(product);
   };
 
   return (
@@ -81,13 +97,22 @@ export default function ProductView({ product }: ProductViewProps) {
             <div className="mt-6 flex flex-wrap gap-4">
               <button
                 type="button"
-                className="w-[45%] px-4 py-2.5 text-slate-900 text-sm font-semibold rounded-md cursor-pointer bg-white border border-slate-300 transition-colors hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                onClick={handleToggleFavorite}
+                aria-pressed={isFavorite}
+                className={`w-[45%] px-4 py-2.5 text-sm font-semibold rounded-md cursor-pointer bg-white border transition-colors hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
+                  isFavorite ? 'text-red-600 border-red-300' : 'text-slate-900 border-slate-300'
+                }`}
               >
                 <span className="inline-flex items-center gap-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="size-4 fill-current" viewBox="0 0 66 66" aria-hidden="true">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className={`size-4 ${isFavorite ? 'fill-current' : 'fill-none stroke-current stroke-4'}`}
+                    viewBox="0 0 66 66"
+                    aria-hidden="true"
+                  >
                     <path d={HEART_PATH} />
                   </svg>
-                  Adicionar aos favoritos
+                  {isFavorite ? 'Salvo nos favoritos' : 'Adicionar aos favoritos'}
                 </span>
               </button>
               <button

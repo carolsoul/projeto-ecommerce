@@ -1,10 +1,11 @@
 import { type Product } from '../types/products';
 import StarRating from './StarRating';
 import { getDiscountPercentage } from '../utils/pricing';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 import { useCart } from '../context/useCart';
 import { useAuth } from '../context/useAuth';
+import { useWishlist } from '../context/useWishlist';
 
 const HEART_PATH =
   'M45.5 4A18.53 18.53 0 0 0 32 9.86 18.5 18.5 0 0 0 0 22.5C0 40.92 29.71 59 31 59.71a2 2 0 0 0 2.06 0C34.29 59 64 40.92 64 22.5A18.52 18.52 0 0 0 45.5 4ZM32 55.64C26.83 52.34 4 36.92 4 22.5a14.5 14.5 0 0 1 26.36-8.33 2 2 0 0 0 3.27 0A14.5 14.5 0 0 1 60 22.5c0 14.41-22.83 29.83-28 33.14Z';
@@ -18,13 +19,28 @@ export default function ProductCard({ product }: ProductCardProps) {
 
   const { addItem } = useCart();
   const { user } = useAuth();
-  
+  const { has, toggleItem } = useWishlist();
+  const navigate = useNavigate();
+
+  const isFavorite = has(product.id);
+  const productPath = `/produto/${product.id}`;
+
+  // Antes isto era um alert(): agora existe tela de login, então levamos a
+  // pessoa até lá e a trazemos de volta ao produto depois.
   const handleAddToCart = () => {
     if (!user) {
-      alert('Você precisa estar logado para adicionar ao carrinho.');
+      navigate('/login', { state: { from: productPath } });
       return;
     }
     addItem(product);
+  };
+
+  const handleToggleFavorite = () => {
+    if (!user) {
+      navigate('/login', { state: { from: productPath } });
+      return;
+    }
+    toggleItem(product);
   };
   return (
     <li className="flex flex-col border border-slate-300 shadow-sm rounded-md p-1.5 transition-all relative overflow-hidden">
@@ -70,12 +86,21 @@ export default function ProductCard({ product }: ProductCardProps) {
         
         <button
           type="button"
-          className="w-full flex items-center justify-center gap-2 pb-1.5 pt-3 cursor-pointer text-sm text-slate-900 font-medium whitespace-nowrap rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+          onClick={handleToggleFavorite}
+          aria-pressed={isFavorite}
+          className={`w-full flex items-center justify-center gap-2 pb-1.5 pt-3 cursor-pointer text-sm font-medium whitespace-nowrap rounded-md transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
+            isFavorite ? 'text-red-600' : 'text-slate-900 hover:text-red-600'
+          }`}
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="size-4 fill-current" viewBox="0 0 66 66" aria-hidden="true">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className={`size-4 ${isFavorite ? 'fill-current' : 'fill-none stroke-current stroke-4'}`}
+            viewBox="0 0 66 66"
+            aria-hidden="true"
+          >
             <path d={HEART_PATH} />
           </svg>
-          <span>Adicionar aos favoritos</span>
+          <span>{isFavorite ? 'Salvo nos favoritos' : 'Adicionar aos favoritos'}</span>
         </button>
       </div>
     </li>

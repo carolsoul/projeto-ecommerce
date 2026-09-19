@@ -80,10 +80,17 @@ A aplicação sobe em `http://localhost:5173`.
 | `/` | Home — banner, categorias e grade de produtos | Público |
 | `/produto/:sku` | Detalhe do produto | Público |
 | `/cart` | Carrinho | Público (itens exigem login) |
+| `/wishlist` | Favoritos | Público (o conteúdo exige login) |
+| `/login` | Login do cliente | Público |
+| `/signup` | Cadastro do cliente | Público |
 | `/admin/login` | Login do administrador | Público |
 | `/admin/products/upload` | Importação de produtos via CSV | **Admin** |
 
 As rotas administrativas passam por `ProtectedRoute`, que redireciona para `/admin/login` quando não há usuário autenticado **ou** quando o usuário não é admin.
+
+Cliente e administrador usam o **mesmo provedor** de e-mail/senha do Firebase Auth — o que distingue os dois é a existência de um documento em `admins/{uid}`. As duas telas de login são separadas só porque o destino após entrar é diferente.
+
+Quem tenta favoritar ou adicionar ao carrinho sem estar logado é levado para `/login` com a origem em `location.state.from`, e volta para o produto depois de entrar.
 
 ---
 
@@ -93,7 +100,9 @@ As rotas administrativas passam por `ProtectedRoute`, que redireciona para `/adm
 | --- | --- | --- |
 | `products` | `{sku}` | Catálogo. O ID do documento é o SKU normalizado (minúsculo, sem espaços) |
 | `admins` | `{uid}` | Lista de administradores — **a simples existência do documento concede acesso admin** |
+| `users` | `{uid}` | Perfil do cliente (`name`, `email`, `createdAt`), criado no cadastro |
 | `users/{uid}/cart` | `{sku}` | Carrinho do usuário. O ID do documento é o SKU do produto |
+| `users/{uid}/wishlist` | `{sku}` | Favoritos do usuário. O ID do documento é o SKU do produto |
 
 ### Produto
 
@@ -133,6 +142,41 @@ O carrinho é sincronizado em tempo real via `onSnapshot`, então ele acompanha 
 1. Crie um usuário em **Authentication → Users** no console do Firebase.
 2. Crie manualmente um documento em `admins` cujo **ID seja o UID** desse usuário (o conteúdo pode ficar vazio).
 3. Acesse `/admin/login`.
+
+### Security Rules
+
+As regras **não estão versionadas neste repositório** — elas vivem no console do Firebase. Como as chaves do `.env.local` vão para o bundle do cliente, são elas que realmente protegem o banco. O mínimo que o código atual exige:
+
+```js
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Catálogo: qualquer um lê, só admin escreve.
+    match /products/{sku} {
+      allow read: if true;
+      allow write: if exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    // Cada pessoa só enxerga e altera os próprios dados.
+    match /users/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+
+      match /{sub=**} {   // cart e wishlist
+        allow read, write: if request.auth != null && request.auth.uid == uid;
+      }
+    }
+
+    // A lista de admins é lida pelo app para decidir o acesso, mas nunca escrita por ele.
+    match /admins/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if false;
+    }
+  }
+}
+```
+
+> Se o cadastro ou os favoritos falharem com `Missing or insufficient permissions`, é aqui que está o problema — e não no código.
 
 ---
 
@@ -175,19 +219,23 @@ src/
 ├── components/      # Banner, Header, ProductCard, ProductList, ProductView,
 │                    # ProductCategory, StarRating, ProtectedRoute
 ├── context/         # Providers: AuthContext (sessão + flag de admin),
-│                    # CartContext (carrinho). Os hooks e os objetos de contexto
-│                    # ficam em useAuth.ts / useCart.ts, separados para não
-│                    # quebrar o Fast Refresh dos providers
+│                    # CartContext (carrinho), WishlistContext (favoritos).
+│                    # Os hooks e os objetos de contexto ficam em useAuth.ts /
+│                    # useCart.ts / useWishlist.ts, separados para não quebrar
+│                    # o Fast Refresh dos providers
 ├── layouts/         # StoreLayout, CheckoutLayout, FooterLayout
 ├── lib/             # firebase.ts — inicialização do SDK
 ├── pages/
 │   ├── admin/       # Login, ProductUpload
 │   ├── Home.tsx
 │   ├── ProductPage.tsx
-│   └── Cart.tsx
+│   ├── Cart.tsx
+│   ├── Wishlist.tsx
+│   ├── Login.tsx    # login do cliente (o do admin fica em admin/)
+│   └── SignUp.tsx
 ├── schemas/         # productSchema.ts — validação Zod do CSV
-├── types/           # Product, CartItem
-├── utils/           # pricing.ts — cálculo de desconto
+├── types/           # Product, CartItem, WishlistItem
+├── utils/           # pricing.ts — desconto; authErrors.ts — mensagens do Auth
 ├── App.tsx          # Providers + tabela de rotas
 ├── main.tsx         # Entry point
 └── index.css        # @import "tailwindcss"
@@ -216,8 +264,10 @@ Algumas decisões do build e do código não são óbvias à primeira leitura:
 Funcionalidades já previstas no código (rotas/arquivos comentados ou placeholders) mas ainda não implementadas:
 
 - **Checkout e pagamento** — `CheckoutLayout` existe, as rotas estão comentadas em `App.tsx`
-- **Cadastro e login de clientes** — hoje só há login de admin; o Header já linka para `/signup` e `/perfil`
-- **Lista de desejos** (`/whishlist`) e **pedidos** (`/orders`)
+- **Login por celular** — o Firebase não tem provedor de telefone + senha: ou é SMS com código (passwordless, exige reCAPTCHA e custa por mensagem), ou se deriva um e-mail sintético do número. Decisão adiada
+- **Página de perfil** (`/perfil`) — o cadastro já grava `name` e `email` em `users/{uid}`, mas não há tela para editar
+- **Recuperação de senha** — falta `sendPasswordResetEmail`
+- **Pedidos** (`/orders`)
 - **Busca** — o campo no Header mantém estado local, mas ainda não filtra
 - **Filtro de categorias** — `CategoryFilter.tsx` está vazio e `ProductCategory` usa imagens fixas
 - **Dashboard admin** (`AdminDashboard`)

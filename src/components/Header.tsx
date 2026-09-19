@@ -1,12 +1,25 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Search, ShoppingBag, Heart, User, Menu, X } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { signOut } from 'firebase/auth';
+import { Search, ShoppingBag, Heart, LogOut, Menu, X } from 'lucide-react';
+import { auth } from '../lib/firebase';
 import { useCart } from '../context/useCart';
+import { useAuth } from '../context/useAuth';
+import { useWishlist } from '../context/useWishlist';
 
 export const Header: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const { itemCount } = useCart()
+    const { itemCount: favoriteCount } = useWishlist()
+    const { user } = useAuth()
+    const navigate = useNavigate()
+
+    const handleSignOut = async () => {
+        await signOut(auth);
+        setIsMenuOpen(false);
+        navigate('/');
+    };
     return (
         <header className='bg-white shadow-md sticky top-0 z-50'>
             <div className='container mx-auto px-4 py-3 flex items-center gap-4'>
@@ -33,10 +46,16 @@ export const Header: React.FC = () => {
 
                     {/* Wishlist - apenas desktop */}
                     <Link
-                        to='/whishlist'
-                        className="hidden md:block text-gray-600 hover:text-blue-500 transition-colors"
+                        to='/wishlist'
+                        className="hidden md:block relative text-gray-600 hover:text-blue-500 transition-colors"
+                        aria-label={`Favoritos (${favoriteCount})`}
                     >
                         <Heart size={24} />
+                        {favoriteCount > 0 && (
+                            <span className='absolute -top-2 -right-2 bg-red-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center'>
+                                {favoriteCount}
+                            </span>
+                        )}
                     </Link>
 
                     {/* Carrinho - sempre visível (mobile e desktop) */}
@@ -47,20 +66,37 @@ export const Header: React.FC = () => {
                         </span>
                     </Link>
 
-                    {/* Botão de Signup - apenas desktop */}
-                    <Link
-                        to='/signup'
-                        className='hidden md:inline-flex items-center bg-blue-600 text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-blue-700 transition-colors'
-                    >
-                        Cadastre-se
-                    </Link>
-
-                    {/* Menu de navegação - apenas desktop */}
-                    <nav className='hidden md:flex items-center gap-4'>
-                        <Link to='/perfil' className='text-gray-600 hover:text-blue-500 transition-colors'>
-                            <User size={24} />
-                        </Link>
-                    </nav>
+                    {/* Entrar/Cadastrar ou saudação + sair - apenas desktop */}
+                    {user ? (
+                        <div className='hidden md:flex items-center gap-3'>
+                            <span className='text-sm text-gray-600 max-w-[12rem] truncate'>
+                                Olá, {user.displayName || user.email}
+                            </span>
+                            <button
+                                type='button'
+                                onClick={handleSignOut}
+                                className='inline-flex items-center gap-1.5 text-sm font-medium text-gray-600 hover:text-blue-500 transition-colors cursor-pointer'
+                            >
+                                <LogOut size={18} />
+                                Sair
+                            </button>
+                        </div>
+                    ) : (
+                        <div className='hidden md:flex items-center gap-3'>
+                            <Link
+                                to='/login'
+                                className='text-sm font-medium text-gray-600 hover:text-blue-500 transition-colors'
+                            >
+                                Entrar
+                            </Link>
+                            <Link
+                                to='/signup'
+                                className='inline-flex items-center bg-blue-600 text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-blue-700 transition-colors'
+                            >
+                                Cadastre-se
+                            </Link>
+                        </div>
+                    )}
 
                     {/* Botão do menu mobile (hamburguer) */}
                     <button
@@ -78,26 +114,40 @@ export const Header: React.FC = () => {
                 <div className='md:hidden border-t border-gray-100 overflow-x-auto'>
                     <div className='flex items-center gap-6 px-4 py-3 whitespace-nowrap'>
                         <Link
-                            to='/whishlist'
+                            to='/wishlist'
                             className='flex items-center gap-1 text-gray-600 hover:text-blue-500 transition-colors text-sm font-medium'
                             onClick={() => setIsMenuOpen(false)}
                         >
                             <Heart size={18} /> Favoritos
+                            {favoriteCount > 0 && <span className='text-red-600'>({favoriteCount})</span>}
                         </Link>
-                        <Link
-                            to='/perfil'
-                            className='flex items-center gap-1 text-gray-600 hover:text-blue-500 transition-colors text-sm font-medium'
-                            onClick={() => setIsMenuOpen(false)}
-                        >
-                            <User size={18} /> Perfil
-                        </Link>
-                        <Link
-                            to='/signup'
-                            className='text-blue-600 hover:text-blue-700 transition-colors text-sm font-semibold'
-                            onClick={() => setIsMenuOpen(false)}
-                        >
-                            Cadastre-se
-                        </Link>
+
+                        {user ? (
+                            <button
+                                type='button'
+                                onClick={handleSignOut}
+                                className='flex items-center gap-1 text-gray-600 hover:text-blue-500 transition-colors text-sm font-medium cursor-pointer'
+                            >
+                                <LogOut size={18} /> Sair
+                            </button>
+                        ) : (
+                            <>
+                                <Link
+                                    to='/login'
+                                    className='text-gray-600 hover:text-blue-500 transition-colors text-sm font-medium'
+                                    onClick={() => setIsMenuOpen(false)}
+                                >
+                                    Entrar
+                                </Link>
+                                <Link
+                                    to='/signup'
+                                    className='text-blue-600 hover:text-blue-700 transition-colors text-sm font-semibold'
+                                    onClick={() => setIsMenuOpen(false)}
+                                >
+                                    Cadastre-se
+                                </Link>
+                            </>
+                        )}
                     </div>
                 </div>
             )}
