@@ -1,4 +1,4 @@
-import { useCart } from '../context/CartContext';
+import { useCart } from '../context/useCart';
 import { type CartItem } from '../types/cart';
 import { Trash, Minus, Plus } from 'lucide-react';
 

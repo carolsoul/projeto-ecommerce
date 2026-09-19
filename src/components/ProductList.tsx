@@ -16,7 +16,7 @@ export default function ProductList() {
         const snapshot = await getDocs(q);
         const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })) as Product[];
         setProducts(data);
-      } catch (err) {
+      } catch {
         setError('Não foi possível carregar os produtos.');
       } finally {
         setLoading(false);

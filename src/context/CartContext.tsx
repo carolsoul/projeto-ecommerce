@@ -1,63 +1,48 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { collection, doc, onSnapshot, setDoc, deleteDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
-import { useAuth } from './AuthContext';
+import { useAuth } from './useAuth';
+import { CartContext } from './useCart';
 import { type CartItem } from '../types/cart';
 import { type Product } from '../types/products';
 
-interface CartContextType {
+// O uid fica guardado junto dos itens para sabermos de qual sessão eles vieram.
+interface CartSnapshot {
+  uid: string | null;
   items: CartItem[];
-  itemCount: number;
-  loading: boolean;
-  addItem: (product: Product, quantity?: number) => Promise<void>;
-  removeItem: (sku: string) => Promise<void>;
-  updateQuantity: (sku: string, quantity: number) => Promise<void>;
 }
-
-const CartContext = createContext<CartContextType>({
-  items: [],
-  itemCount: 0,
-  loading: true,
-  addItem: async () => {},
-  removeItem: async () => {},
-  updateQuantity: async () => {},
-});
-
-export const useCart = () => useContext(CartContext);
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
-  const [items, setItems] = useState<CartItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const uid = user?.uid ?? null;
+  const [snapshot, setSnapshot] = useState<CartSnapshot>({ uid: null, items: [] });
 
   useEffect(() => {
-    if (!user) {
-      setItems([]);
-      setLoading(false);
-      return;
-    }
+    if (!uid) return;
 
-    setLoading(true);
-
-    const unsubscribe = onSnapshot(collection(db, 'users', user.uid, 'cart'), (snapshot) => {
-      const cartItems = snapshot.docs.map((docSnap) => ({
+    return onSnapshot(collection(db, 'users', uid, 'cart'), (snap) => {
+      const items = snap.docs.map((docSnap) => ({
         sku: docSnap.id,
         ...docSnap.data(),
       })) as CartItem[];
-      setItems(cartItems);
-      setLoading(false);
-    });
 
-    return unsubscribe;
-  }, [user]);
+      setSnapshot({ uid, items });
+    });
+  }, [uid]);
+
+  // Enquanto o snapshot do usuário atual não chega, o carrinho fica carregando
+  // em vez de exibir os itens da sessão anterior.
+  const isCurrent = snapshot.uid === uid;
+  const items = uid !== null && isCurrent ? snapshot.items : [];
+  const loading = uid !== null && !isCurrent;
 
   const addItem = async (product: Product, quantity = 1) => {
-    if (!user) return;
+    if (!uid) return;
 
     const existing = items.find((item) => item.sku === product.id);
 
     await setDoc(
-      doc(db, 'users', user.uid, 'cart', product.id),
+      doc(db, 'users', uid, 'cart', product.id),
       {
         quantity: (existing?.quantity ?? 0) + quantity,
         price: product.price,
@@ -69,13 +54,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
   };
 
   const removeItem = async (sku: string) => {
-    if (!user) return;
-    await deleteDoc(doc(db, 'users', user.uid, 'cart', sku));
+    if (!uid) return;
+    await deleteDoc(doc(db, 'users', uid, 'cart', sku));
   };
 
   const updateQuantity = async (sku: string, quantity: number) => {
-    if (!user || quantity < 1) return;
-    await updateDoc(doc(db, 'users', user.uid, 'cart', sku), { quantity });
+    if (!uid || quantity < 1) return;
+    await updateDoc(doc(db, 'users', uid, 'cart', sku), { quantity });
   };
 
   const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);

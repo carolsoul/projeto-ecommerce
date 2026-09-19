@@ -174,7 +174,10 @@ O desconto exibido nos cards é derivado de `price` e `mrp` (`src/utils/pricing.
 src/
 ├── components/      # Banner, Header, ProductCard, ProductList, ProductView,
 │                    # ProductCategory, StarRating, ProtectedRoute
-├── context/         # AuthContext (sessão + flag de admin), CartContext (carrinho)
+├── context/         # Providers: AuthContext (sessão + flag de admin),
+│                    # CartContext (carrinho). Os hooks e os objetos de contexto
+│                    # ficam em useAuth.ts / useCart.ts, separados para não
+│                    # quebrar o Fast Refresh dos providers
 ├── layouts/         # StoreLayout, CheckoutLayout, FooterLayout
 ├── lib/             # firebase.ts — inicialização do SDK
 ├── pages/

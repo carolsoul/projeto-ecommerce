@@ -16,7 +16,7 @@ export default function Login() {
     try {
       await signInWithEmailAndPassword(auth, email, password);
       navigate('/admin/products/upload');
-    } catch (err) {
+    } catch {
       setError('Email ou senha inválidos.');
     }
   };

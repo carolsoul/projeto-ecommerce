@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, ShoppingBag, Heart, User, Menu, X } from 'lucide-react';
-import { useCart } from '../context/CartContext';
+import { useCart } from '../context/useCart';
 
 export const Header: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState('');
