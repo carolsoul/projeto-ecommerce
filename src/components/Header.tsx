@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useState, type FormEvent } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import { Search, ShoppingBag, Heart, LogOut, Menu, X } from 'lucide-react';
 import { auth } from '../lib/firebase';
@@ -8,12 +8,37 @@ import { useAuth } from '../context/useAuth';
 import { useWishlist } from '../context/useWishlist';
 
 export const Header: React.FC = () => {
-    const [searchTerm, setSearchTerm] = useState('');
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const { itemCount } = useCart()
     const { itemCount: favoriteCount } = useWishlist()
     const { user } = useAuth()
     const navigate = useNavigate()
+    const [searchParams] = useSearchParams()
+
+    // O termo vem da URL, não de um estado local. O `key` remonta o input
+    // quando a URL muda, então voltar pelo histórico ou limpar a busca deixa o
+    // campo coerente sem precisar de um efeito sincronizando as duas coisas.
+    const activeSearch = searchParams.get('q') ?? '';
+
+    const handleSearch = (e: FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+
+        const formData = new FormData(e.currentTarget);
+        const term = String(formData.get('q') ?? '').trim();
+
+        setIsMenuOpen(false);
+
+        if (term === '') {
+            navigate('/');
+            return;
+        }
+
+        navigate(`/?q=${encodeURIComponent(term)}`);
+    };
+
+    const handleClearSearch = () => {
+        navigate('/');
+    };
 
     const handleSignOut = async () => {
         await signOut(auth);
@@ -30,16 +55,35 @@ export const Header: React.FC = () => {
                 </Link>
 
                 {/* Search Bar - sempre visível, ocupa o espaço disponível */}
-                <div className='relative flex-1 min-w-0'>
+                <form onSubmit={handleSearch} role='search' className='relative flex-1 min-w-0'>
                     <input
-                        type="text"
+                        key={activeSearch}
+                        name='q'
+                        type="search"
+                        defaultValue={activeSearch}
                         placeholder="Buscar produtos..."
-                        className="w-full bg-gray-100 rounded-full py-2 px-4 pl-10 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
+                        aria-label="Buscar produtos"
+                        className="w-full bg-gray-100 rounded-full py-2 px-4 pl-10 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
                     />
-                    <Search size={18} className='absolute left-3 top-1/2 -translate-y-1/2 text-gray-500' />
-                </div>
+                    <button
+                        type='submit'
+                        aria-label='Buscar'
+                        className='absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-blue-500 transition-colors cursor-pointer'
+                    >
+                        <Search size={18} />
+                    </button>
+
+                    {activeSearch !== '' && (
+                        <button
+                            type='button'
+                            onClick={handleClearSearch}
+                            aria-label='Limpar busca'
+                            className='absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-blue-500 transition-colors cursor-pointer'
+                        >
+                            <X size={18} />
+                        </button>
+                    )}
+                </form>
 
                 {/* Ações à direita */}
                 <div className='flex items-center gap-4 flex-shrink-0'>

@@ -216,8 +216,10 @@ O desconto exibido nos cards é derivado de `price` e `mrp` (`src/utils/pricing.
 
 ```
 src/
-├── components/      # Banner, Header, ProductCard, ProductList, ProductView,
-│                    # ProductCategory, StarRating, ProtectedRoute
+├── components/      # Banner, Header, ProductCard, ProductGrid, ProductList,
+│                    # ProductView, StarRating, ProtectedRoute,
+│                    # ProductCategory (vitrine da Home) e CategoryFilter
+│                    # (filtro avançado, só na busca), SearchResults
 ├── context/         # Providers: AuthContext (sessão + flag de admin),
 │                    # CartContext (carrinho), WishlistContext (favoritos).
 │                    # Os hooks e os objetos de contexto ficam em useAuth.ts /
@@ -235,7 +237,8 @@ src/
 │   └── SignUp.tsx
 ├── schemas/         # productSchema.ts — validação Zod do CSV
 ├── types/           # Product, CartItem, WishlistItem
-├── utils/           # pricing.ts — desconto; authErrors.ts — mensagens do Auth
+├── utils/           # pricing.ts — desconto; authErrors.ts — mensagens do Auth;
+│                    # search.ts — normalização sem acento e derivação de categorias
 ├── App.tsx          # Providers + tabela de rotas
 ├── main.tsx         # Entry point
 └── index.css        # @import "tailwindcss"
@@ -259,6 +262,31 @@ Algumas decisões do build e do código não são óbvias à primeira leitura:
 
 ---
 
+## Busca e categorias
+
+Os dois estados da Home vivem na URL, não em estado de componente — o resultado é compartilhável e o botão voltar funciona:
+
+| URL | O que aparece |
+| --- | --- |
+| `/` | Banner + cards de categoria + grade paginada |
+| `/?categoria=roupas` | Igual, com a grade filtrada e o card da categoria destacado |
+| `/?q=camiseta` | Resultados da busca + **filtro avançado** de categorias. Sem banner |
+
+**Os dois componentes de categoria são coisas diferentes** e é fácil confundi-los:
+
+- **`ProductCategory`** — a vitrine de cards quadrados na Home. Sempre visível fora da busca. As imagens vêm do **primeiro produto de cada categoria** no Firestore, então acompanham o catálogo sem coluna nova no CSV.
+- **`CategoryFilter`** — o filtro avançado, que **só aparece quando há busca**. No desktop é uma coluna que rola na vertical ao lado dos resultados; no mobile, uma faixa que rola na horizontal acima deles.
+
+**A busca filtra no cliente.** O Firestore não tem operador "contém" — só igualdade e prefixo. Para permitir buscar no meio da palavra e ignorar acento (`cafe` encontra `Café`), `SearchResults` carrega um recorte do catálogo (`SEARCH_FETCH_LIMIT`, hoje 300) e filtra em memória. Esse número é o limite honesto da abordagem: passando disso, o caminho é indexar em Algolia ou Typesense, **não** aumentar o teto.
+
+### Índice composto obrigatório
+
+Filtrar por categoria e ordenar por data ao mesmo tempo (`where('category','==',x)` + `orderBy('createdAt','desc')`) exige um **índice composto** no Firestore. Ele não é criado sozinho: na primeira vez que alguém abrir `/?categoria=...`, o Firestore devolve um erro no console do navegador **com um link direto para criar o índice com um clique**. Depois de criado, leva um ou dois minutos para ficar pronto.
+
+> Se a filtragem por categoria vier vazia ou falhar, procure no console por `The query requires an index` — é isso, e não o código.
+
+---
+
 ## Em desenvolvimento
 
 Funcionalidades já previstas no código (rotas/arquivos comentados ou placeholders) mas ainda não implementadas:
@@ -268,7 +296,5 @@ Funcionalidades já previstas no código (rotas/arquivos comentados ou placehold
 - **Página de perfil** (`/perfil`) — o cadastro já grava `name` e `email` em `users/{uid}`, mas não há tela para editar
 - **Recuperação de senha** — falta `sendPasswordResetEmail`
 - **Pedidos** (`/orders`)
-- **Busca** — o campo no Header mantém estado local, mas ainda não filtra
-- **Filtro de categorias** — `CategoryFilter.tsx` está vazio e `ProductCategory` usa imagens fixas
 - **Dashboard admin** (`AdminDashboard`)
 - Frete e taxa no carrinho são **valores fixos** (`SHIPPING` e `TAX` em `src/pages/Cart.tsx`)

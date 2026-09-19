@@ -6,13 +6,46 @@ import {
   orderBy,
   query,
   startAfter,
+  where,
+  type QueryConstraint,
   type QueryDocumentSnapshot,
 } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { type Product } from '../types/products';
-import ProductCard from './ProductCard';
+import ProductGrid from './ProductGrid';
 
 const PAGE_SIZE = 24;
+
+interface ProductListProps {
+  /**
+   * Filtro vindo de `/?categoria=`. O componente é remontado via `key` quando
+   * ele muda, então o estado de paginação se reinicia sozinho — sem efeito
+   * limpando estado, que é justamente o que o React Compiler não aceita.
+   */
+  category?: string | null;
+}
+
+// Filtrar por categoria e ordenar por createdAt ao mesmo tempo exige um índice
+// composto no Firestore (category ASC + createdAt DESC). Ele não é criado
+// sozinho: na primeira vez, o Firestore devolve um erro com o link para criar
+// com um clique. Está documentado no README.
+function buildConstraints(category: string | null, cursor: QueryDocumentSnapshot | null) {
+  const constraints: QueryConstraint[] = [];
+
+  if (category !== null) {
+    constraints.push(where('category', '==', category));
+  }
+
+  constraints.push(orderBy('createdAt', 'desc'));
+
+  if (cursor !== null) {
+    constraints.push(startAfter(cursor));
+  }
+
+  constraints.push(limit(PAGE_SIZE));
+
+  return constraints;
+}
 
 // Nota sobre o formato dos try/catch abaixo: eles repetem o reset dos flags em
 // vez de usar `finally`, e derivam o cursor com `if` em vez de `??`. Não é
@@ -21,7 +54,7 @@ const PAGE_SIZE = 24;
 // a finalizer clause" e "Support value blocks ... within a try/catch"). Voltar
 // a usar finally ou ?? aqui derruba a memoização silenciosamente.
 
-export default function ProductList() {
+export default function ProductList({ category = null }: ProductListProps) {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -36,11 +69,7 @@ export default function ProductList() {
   useEffect(() => {
     async function fetchFirstPage() {
       try {
-        const q = query(
-          collection(db, 'products'),
-          orderBy('createdAt', 'desc'),
-          limit(PAGE_SIZE)
-        );
+        const q = query(collection(db, 'products'), ...buildConstraints(category, null));
         const snapshot = await getDocs(q);
         const docs = snapshot.docs;
         const data = docs.map((doc) => ({ id: doc.id, ...doc.data() })) as Product[];
@@ -61,7 +90,7 @@ export default function ProductList() {
     }
 
     fetchFirstPage();
-  }, []);
+  }, [category]);
 
   const loadMore = async () => {
     if (!cursor || loadingMore) return;
@@ -70,12 +99,7 @@ export default function ProductList() {
     setError(null);
 
     try {
-      const q = query(
-        collection(db, 'products'),
-        orderBy('createdAt', 'desc'),
-        startAfter(cursor),
-        limit(PAGE_SIZE)
-      );
+      const q = query(collection(db, 'products'), ...buildConstraints(category, cursor));
       const snapshot = await getDocs(q);
       const docs = snapshot.docs;
       const data = docs.map((doc) => ({ id: doc.id, ...doc.data() })) as Product[];
@@ -99,10 +123,14 @@ export default function ProductList() {
     <section className="mt-6 px-4 md:px-8" aria-labelledby="products-heading">
       <div className="max-w-7xl mx-auto">
         <div className="border-b border-slate-300 pb-4 mb-8 md:mb-12">
-          <h2 id="products-heading" className="text-2xl font-bold text-slate-900">
-            Populares
+          <h2 id="products-heading" className="text-2xl font-bold text-slate-900 capitalize">
+            {category === null ? 'Populares' : category}
           </h2>
-          <p className="text-base text-slate-600 mt-2">Confira os produtos mais populares e tendenciosos.</p>
+          <p className="text-base text-slate-600 mt-2">
+            {category === null
+              ? 'Confira os produtos mais populares e tendenciosos.'
+              : `Produtos da categoria ${category}.`}
+          </p>
         </div>
 
         {loading && <p className="text-center py-12">Carregando produtos...</p>}
@@ -110,16 +138,12 @@ export default function ProductList() {
           <p className="text-center py-12 text-red-600">{error}</p>
         )}
         {!loading && !error && products.length === 0 && (
-          <p className="text-center py-12">Nenhum produto encontrado.</p>
+          <p className="text-center py-12">Nenhum produto encontrado nesta categoria.</p>
         )}
 
         {products.length > 0 && (
           <>
-            <ul className="grid gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
-              {products.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </ul>
+            <ProductGrid products={products} />
 
             {error && <p className="text-center pt-8 text-red-600">{error}</p>}
 

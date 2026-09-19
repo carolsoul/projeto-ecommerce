@@ -71,9 +71,9 @@ export default function ProductCard({ product }: ProductCardProps) {
           <div className="mt-4">
             <p className="text-slate-900 font-semibold text-sm sm:text-base break-words">
               {product.mrp != null && (
-                <span className="mr-1.5 text-slate-600 line-through">${product.mrp.toFixed(2)}</span>
+                <span className="mr-1.5 text-slate-600 line-through">R${product.mrp.toFixed(2)}</span>
               )}
-              ${product.price.toFixed(2)}
+              R${product.price.toFixed(2)}
             </p>
           </div>
         </div>
