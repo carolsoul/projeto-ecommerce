@@ -21,14 +21,23 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!uid) return;
 
-    return onSnapshot(collection(db, 'users', uid, 'wishlist'), (snap) => {
-      const items = snap.docs.map((docSnap) => ({
-        sku: docSnap.id,
-        ...docSnap.data(),
-      })) as WishlistItem[];
+    return onSnapshot(
+      collection(db, 'users', uid, 'wishlist'),
+      (snap) => {
+        const items = snap.docs.map((docSnap) => ({
+          sku: docSnap.id,
+          ...docSnap.data(),
+        })) as WishlistItem[];
 
-      setSnapshot({ uid, items });
-    });
+        setSnapshot({ uid, items });
+      },
+      (error) => {
+        // Mesmo tratamento do carrinho: resolve o loading em vez de travar a
+        // tela, mas deixa o erro visível no console para diagnóstico.
+        console.error('Falha ao ouvir os favoritos:', error);
+        setSnapshot({ uid, items: [] });
+      }
+    );
   }, [uid]);
 
   const isCurrent = snapshot.uid === uid;

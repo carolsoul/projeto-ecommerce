@@ -145,38 +145,15 @@ O carrinho é sincronizado em tempo real via `onSnapshot`, então ele acompanha 
 
 ### Security Rules
 
-As regras **não estão versionadas neste repositório** — elas vivem no console do Firebase. Como as chaves do `.env.local` vão para o bundle do cliente, são elas que realmente protegem o banco. O mínimo que o código atual exige:
+As regras completas estão em **[`firestore.rules`](firestore.rules)**, na raiz do projeto. Elas **não são aplicadas automaticamente**: cole o conteúdo no console do Firebase, em *Firestore Database → Regras*, e publique.
 
-```js
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
+Como as chaves do `.env.local` vão para o bundle do cliente, são as regras — não o sigilo dessas chaves — que realmente protegem o banco. Três pontos valem destaque:
 
-    // Catálogo: qualquer um lê, só admin escreve.
-    match /products/{sku} {
-      allow read: if true;
-      allow write: if exists(/databases/$(database)/documents/admins/$(request.auth.uid));
-    }
+- **`products` é lido por qualquer um**, inclusive deslogado: a Home, a busca e os cards de categoria carregam produtos antes de qualquer login. A escrita é restrita a admin.
+- **`users/{uid}` e suas subcoleções** (`cart`, `wishlist`) só são acessíveis pelo próprio dono.
+- **`admins/{uid}` precisa ser legível pelo próprio usuário**, mesmo quem não é admin. O `AuthContext` consulta esse documento a cada login para decidir o acesso; negar essa leitura para clientes comuns quebra o app. Ler o documento de outra pessoa continua negado, e a escrita é negada para todos — admin se concede pelo console.
 
-    // Cada pessoa só enxerga e altera os próprios dados.
-    match /users/{uid} {
-      allow read, write: if request.auth != null && request.auth.uid == uid;
-
-      match /{sub=**} {   // cart e wishlist
-        allow read, write: if request.auth != null && request.auth.uid == uid;
-      }
-    }
-
-    // A lista de admins é lida pelo app para decidir o acesso, mas nunca escrita por ele.
-    match /admins/{uid} {
-      allow read: if request.auth != null && request.auth.uid == uid;
-      allow write: if false;
-    }
-  }
-}
-```
-
-> Se o cadastro ou os favoritos falharem com `Missing or insufficient permissions`, é aqui que está o problema — e não no código.
+> `Missing or insufficient permissions` no console do navegador significa que as regras publicadas não cobrem algum desses casos.
 
 ---
 
