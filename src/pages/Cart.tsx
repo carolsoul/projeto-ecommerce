@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/useCart';
 import { type CartItem } from '../types/cart';
 import { Trash, Minus, Plus } from 'lucide-react';
@@ -53,7 +54,7 @@ function CartItemRow ({
 
             <div className="mt-6">
                 <p className="text-base font-semibold text-slate-900">
-                    ${(item.price * item.quantity).toFixed(2)}
+                    R${(item.price * item.quantity).toFixed(2)}
                 </p>
                 </div>
                 </div>
@@ -63,13 +64,21 @@ function CartItemRow ({
 }
 
 export default function Cart() {
+    const navigate = useNavigate();
     const { items, loading, removeItem, updateQuantity } = useCart();
-
     const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
     const total = subtotal + (items.length > 0 ? SHIPPING + TAX : 0);
 
     if (loading) {
         return <p className='text-center py-20'>Carregando carrinho...</p>
+    }
+
+    const handleCheckout = () => {
+        if (items.length === 0) {
+            alert('Seu carrinho está vazio. Adicione produtos antes de continuar para o pagamento.');
+            return;
+        }
+        navigate('/checkout');
     }
     return (
         <main className="mt-6 px-4 md:px-8">
@@ -112,7 +121,7 @@ export default function Cart() {
                             </ul>
 
                             <div className='mt-6 space-y-3 text-center'>
-                                <button type='button' className='w-full px-4 py-2.5 text-white text-sm font-semibold rounded-md cursor-pointer bg-blue-600 hover:bg-blue-700 border border-blue-600'>
+                                <button type='button' className='w-full px-4 py-2.5 text-white text-sm font-semibold rounded-md cursor-pointer bg-blue-600 hover:bg-blue-700 border border-blue-600' onClick={handleCheckout}>
                                     Continuar para o pagamento
                                 </button>
                             </div>
