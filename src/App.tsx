@@ -6,7 +6,7 @@ import { CartProvider } from './context/CartContext';
 import { WishlistProvider } from './context/WishlistContext';
 
 import StoreLayout from './layouts/StoreLayout';
-//import CheckoutLayout from './layouts/CheckoutLayout';
+import CheckoutLayout from './layouts/CheckoutLayout';
 import FooterLayout from './layouts/FooterLayout'
 
 import  Home from './pages/Home';
@@ -16,11 +16,9 @@ import Wishlist from "./pages/Wishlist";
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
 //import Orders from "./pages/Orders";
-//import Checkout from "./pages/Checkout";
 
-
-// As telas de admin ficam em chunks separados: elas carregam Zod e PapaParse,
-// que não têm por que pesar no bundle de quem só quer comprar.
+const Checkout = lazy(() => import('./pages/Checkout'));
+// telas de admin ficam em chunks separados
 const AdminLogin = lazy(() => import('./pages/admin/Login'));
 const ProductUpload = lazy(() => import('./pages/admin/ProductUpload'));
 //import AdminDashboard from './pages/admin/AdminDashboard';
@@ -43,14 +41,13 @@ function App() {
                   <Route path="/signup" element={<SignUp />} />
                 </Route>
 
-                {/* se o Checkout também deve ter footer, mas com header diferente:
+                {/* Checkout com header minimalista, com footer */}
                 <Route element={<CheckoutLayout />}>
                   <Route path="/checkout" element={<Checkout />} />
-                  <Route path="/checkout/pagamento" element={<Payment />} />
-                </Route>*/}
+                  {/*<Route path="/checkout/pagamento" element={<Payment />} /> */}
+                </Route>
               </Route>
 
-              {/* Admin fica fora do FooterLayout inteiramente, se não quiser footer lá */}
               <Route path="/admin/login" element={<AdminLogin />} />
               <Route element={<ProtectedRoute />}>
                 {/*<Route path="/admin" element={<AdminDashboard />} />*/}
