@@ -9,8 +9,6 @@ import ProductGrid from './ProductGrid';
 // O Firestore não faz busca por texto parcial: não existe "contém". Por isso
 // carregamos um recorte do catálogo uma vez e filtramos em memória, o que
 // permite buscar no meio da palavra e ignorar acento. O teto abaixo é o limite
-// honesto dessa abordagem — passando disso, o certo é indexar em algo como
-// Algolia ou Typesense em vez de aumentar o número.
 const SEARCH_FETCH_LIMIT = 300;
 
 interface SearchResultsProps {
@@ -47,10 +45,6 @@ export default function SearchResults({ searchTerm }: SearchResultsProps) {
 
   const matches = products.filter((product) => matchesSearch(product, searchTerm));
   const categories = collectCategories(matches);
-
-  // A categoria escolhida é validada contra o que existe nos resultados atuais.
-  // Assim, trocar a busca descarta sozinho um filtro que não se aplica mais —
-  // sem precisar de um efeito para limpar o estado.
   const isSelectionValid = selectedCategory !== null && categories.includes(selectedCategory);
   const activeCategory = isSelectionValid ? selectedCategory : null;
 
@@ -81,8 +75,6 @@ export default function SearchResults({ searchTerm }: SearchResultsProps) {
         {!loading && error && <p className="text-center py-12 text-red-600">{error}</p>}
 
         {!loading && !error && (
-          // Desktop: filtro em coluna à esquerda dos resultados.
-          // Mobile: filtro em faixa horizontal acima deles.
           <div className="lg:grid lg:grid-cols-[13rem_1fr] lg:gap-8 lg:items-start">
             <aside className="lg:sticky lg:top-20">
               <CategoryFilter
