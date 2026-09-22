@@ -43,6 +43,19 @@ service cloud.firestore {
       }
     }
 
+    // Pedidos.
+    //
+    // A pessoa lê os próprios pedidos e NUNCA escreve nenhum. Quem cria é o
+    // endpoint /api/checkout/create-order, através do Admin SDK, que ignora
+    // estas regras por rodar com privilégio de administrador.
+    //
+    // É isso que garante que o valor cobrado foi calculado no servidor: não
+    // existe caminho pelo qual o navegador consiga gravar um total.
+    match /orders/{orderId} {
+      allow read: if isSignedIn() && resource.data.uid == request.auth.uid;
+      allow write: if false;
+    }
+
     // Lista de administradores.
     //
     // A leitura do PRÓPRIO documento precisa ser permitida mesmo para quem não
