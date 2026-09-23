@@ -17,6 +17,13 @@ dist-ssr
 !.vscode/extensions.json
 .idea
 .env.local
+
+# Credenciais do Firebase Admin. O arquivo que o console baixa dá acesso total
+# ao projeto, ignorando as security rules — não pode entrar no repositório.
+*firebase-adminsdk*.json
+*serviceAccount*.json
+service-account*.json
+
 .DS_Store
 *.suo
 *.ntvs*
