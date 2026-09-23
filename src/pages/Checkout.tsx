@@ -120,6 +120,10 @@ export default function Checkout() {
     return <p className="text-center py-20">Carregando carrinho...</p>;
   }
 
+  if (authLoading) {
+    return <p className='text-center py-20'>Autenticando usuário...</p>
+  }
+
   return (
     <main>
       <h1 className="sr-only">Finalizar compra</h1>
