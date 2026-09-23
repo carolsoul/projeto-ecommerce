@@ -21,7 +21,7 @@ interface SavedAddress {
 }
 
 export default function Checkout() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { items, loading, removeItem, updateQuantity } = useCart();
 
   const [address, setAddress] = useState<SavedAddress | null>(null);
@@ -30,6 +30,10 @@ export default function Checkout() {
   const [orderId, setOrderId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  if (authLoading) {
+    return <p className='text-center py-20'>Autenticando usuário...</p>
+  }
 
   // Prévia apenas visual, enquanto não há endereço. Frete, taxa e total só
   // existem depois que o servidor calcula — não são reproduzidos aqui.
@@ -78,32 +82,39 @@ export default function Checkout() {
     setError(null);
     setBusy(true);
 
-    let createdId: string | null = null;
-    let failure: unknown = null;
-
     try {
-      // Chave por tentativa: dois cliques não viram dois pedidos.
+      // 1. Cria o pedido no seu banco (Mantendo sua idempotência perfeitamente intacta)
       const result = await postJson<{ orderId: string }>('/api/checkout/create-order', {
         addressId: address.id,
         paymentMethod,
         idempotencyKey: crypto.randomUUID(),
       });
-      createdId = result.orderId;
+
+      const createdId = result.orderId;
+      setOrderId(createdId);
+
+      // 2. PLUG DO MERCADO PAGO: Chama a rota intermediária para gerar o checkout na Sandbox
+      // Esta rota também se beneficia do token injetado pelo passo 1
+      const preference = await postJson<{ url: string }>('/api/checkout/create-preference', {
+        orderId: createdId,
+      });
+
+      // 3. Redireciona o comprador para a tela segura de sandbox do Mercado Pago
+      if (preference.url) {
+        window.location.href = preference.url;
+      } else {
+        throw new Error('Não foi possível gerar o link de pagamento.');
+      }
+
     } catch (err) {
-      failure = err;
-    }
-
-    setBusy(false);
-
-    if (failure || createdId === null) {
       setError(
-        failure instanceof Error ? failure.message : 'Não foi possível criar o pedido.'
+        err instanceof Error ? err.message : 'Não foi possível processar o pagamento.'
       );
-      return;
+    } finally {
+      setBusy(false);
     }
+};
 
-    setOrderId(createdId);
-  };
 
   if (loading) {
     return <p className="text-center py-20">Carregando carrinho...</p>;
