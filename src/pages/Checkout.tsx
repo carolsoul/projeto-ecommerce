@@ -56,7 +56,7 @@ export default function Checkout() {
       saved = { id: ref.id, data };
 
       // O servidor recalcula tudo a partir do carrinho e deste endereço.
-      const quote = await postJson<OrderTotals>('/api/checkout/quote', { addressId: ref.id });
+      const quote = await postJson<OrderTotals>('/api/checkout/quote/', { addressId: ref.id });
       setTotals(quote);
     } catch (err) {
       failure = err;
