@@ -21,8 +21,10 @@ export async function getUidFromRequest(req: VercelRequest): Promise<string | nu
   try {
     const decoded = await getAuth().verifyIdToken(token);
     return decoded.uid;
-  } catch {
-    // Token expirado, malformado ou assinado por outro projeto.
+  } catch (error) {
+    // ATENÇÃO: Adicione este console.error para o erro real subir nos logs da Vercel
+    console.error("FALHA NA VERIFICAÇÃO DO TOKEN FIREBASE:", error);
     return null;
   }
+
 }
