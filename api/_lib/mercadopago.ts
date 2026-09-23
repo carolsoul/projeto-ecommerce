@@ -144,14 +144,20 @@ export interface PreferenceResponse {
 }
 
 /**
- * Escolhe para onde mandar o comprador.
+ * Escolhe para onde mandar o comprador: sempre o `init_point`.
  *
- * Com credencial de teste o link que funciona é o `sandbox_init_point`; com
- * credencial de produção só vem `init_point`. Tentar os dois evita ter que
- * trocar código na hora de publicar de verdade.
+ * A versão anterior preferia o `sandbox_init_point` achando que ele só vinha
+ * com credencial de teste. Não é assim — o Mercado Pago devolve os dois campos
+ * em qualquer preferência. O efeito era mandar um comprador de credencial
+ * `APP_USR-` para o ambiente de sandbox, e o checkout recusava com "uma das
+ * partes com as quais você está tentando efetuar o pagamento é de teste".
+ *
+ * O sandbox foi descontinuado: hoje testar é criar usuários de teste, que têm
+ * credenciais `APP_USR-` próprias e pagam pelo `init_point` normal. O fallback
+ * só existe para não devolver `null` numa resposta fora do formato esperado.
  */
 export function checkoutUrlOf(preference: PreferenceResponse): string | null {
-  return preference.sandbox_init_point ?? preference.init_point ?? null;
+  return preference.init_point ?? preference.sandbox_init_point ?? null;
 }
 
 export type OrderPaymentStatus = 'paid' | 'pending' | 'failed' | 'cancelled' | null;

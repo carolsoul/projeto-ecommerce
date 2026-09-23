@@ -92,14 +92,20 @@ describe('buildPreferencePayload', () => {
 });
 
 describe('checkoutUrlOf', () => {
-  it('prefere o link de sandbox quando ele existe', () => {
+  it('ignora o link de sandbox mesmo quando ele vem junto', () => {
+    // O MP devolve os dois campos em toda preferência. Mandar o comprador para
+    // o sandbox com credencial APP_USR- faz o checkout recusar o pagamento.
     expect(
       checkoutUrlOf({ init_point: 'https://prod', sandbox_init_point: 'https://sandbox' })
-    ).toBe('https://sandbox');
+    ).toBe('https://prod');
   });
 
-  it('cai para o link de produção quando não há sandbox', () => {
+  it('usa o link de produção quando é o único', () => {
     expect(checkoutUrlOf({ init_point: 'https://prod' })).toBe('https://prod');
+  });
+
+  it('cai para o sandbox só quando não veio init_point', () => {
+    expect(checkoutUrlOf({ sandbox_init_point: 'https://sandbox' })).toBe('https://sandbox');
   });
 
   it('devolve null quando a resposta não trouxe link nenhum', () => {
