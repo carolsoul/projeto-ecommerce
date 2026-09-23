@@ -1,6 +1,6 @@
 import { getAuth } from 'firebase-admin/auth';
 import type { VercelRequest } from '@vercel/node';
-import { getAdminDb } from '../_lib/firebaseAdmin'
+import { getAdminDb } from './firebaseAdmin';
 /**
  * Descobre quem está chamando, a partir do ID token do Firebase.
  *
