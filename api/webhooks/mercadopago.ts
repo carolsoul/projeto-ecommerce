@@ -12,6 +12,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (!paymentId) return res.status(400).json({ error: 'ID ausente' });
 
       // Handshake de segurança com o Mercado Pago
+      // Dentro do seu mercadopago.ts (Webhook), a linha de consulta deve ser exatamente assim:
       const mpResponse = await fetch(`https://mercadopago.com{paymentId}`, {
         headers: { 'Authorization': `Bearer ${process.env.MP_ACCESS_TOKEN_SANDBOX}` }
       });
