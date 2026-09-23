@@ -19,13 +19,17 @@ export async function getUidFromRequest(req: VercelRequest): Promise<string | nu
   if (token === '') return null;
 
   try {
-    getAdminDb()
+    // `getAuth()` sem argumento exige que o app padrão já exista. Esta chamada
+    // está aqui só para garantir a inicialização — o Firestore em si não é
+    // usado nesta função.
+    getAdminDb();
+
     const decoded = await getAuth().verifyIdToken(token);
     return decoded.uid;
   } catch (error) {
-    // ATENÇÃO: Adicione este console.error para o erro real subir nos logs da Vercel
-    console.error("FALHA NA VERIFICAÇÃO DO TOKEN FIREBASE:", error);
+    // Sem este log, um token recusado vira um 401 mudo e não dá para saber se o
+    // problema foi expiração, projeto errado ou credencial do servidor.
+    console.error('Falha ao verificar o ID token do Firebase:', error);
     return null;
   }
-
 }
