@@ -3,9 +3,6 @@ import { useCart } from '../context/useCart';
 import { type CartItem } from '../types/cart';
 import { Trash, Minus, Plus } from 'lucide-react';
 
-const SHIPPING = 4.0;
-const TAX = 4.0;
-
 function CartItemRow ({
     item,
     onRemove,
@@ -67,7 +64,6 @@ export default function Cart() {
     const navigate = useNavigate();
     const { items, loading, removeItem, updateQuantity } = useCart();
     const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-    const total = subtotal + (items.length > 0 ? SHIPPING + TAX : 0);
 
     if (loading) {
         return <p className='text-center py-20'>Carregando carrinho...</p>
@@ -106,19 +102,16 @@ export default function Cart() {
                                     Subtotal
                                      <span className="ml-auto font-semibold text-slate-900">R${subtotal.toFixed(2)}</span>
                                 </li>
-                                <li className="flex flex-wrap gap-4 text-sm py-3">
-                                    Entrega
-                                    <span className="ml-auto font-semibold text-slate-900">R${SHIPPING.toFixed(2)}</span>
-                                </li>
-                                <li className="flex flex-wrap gap-4 text-sm py-3">
-                                    Taxa
-                                    <span className="ml-auto font-semibold text-slate-900">R${TAX.toFixed(2)}</span>
-                                </li>
-                                <li className="flex flex-wrap gap-4 text-sm py-3 font-semibold text-slate-900">
-                                    Total 
-                                    <span className="ml-auto">R${total.toFixed(2)}</span>
-                                </li>
                             </ul>
+
+                            {/* Entrega e taxa NÃO aparecem aqui de propósito. O frete
+                                depende da UF do endereço e a taxa é calculada em
+                                api/_lib/pricing.ts — reproduzir essa conta no
+                                navegador significaria duas fontes da verdade sobre
+                                dinheiro, e a do cliente sempre acabaria desatualizada. */}
+                            <p className='mt-4 text-xs text-slate-500'>
+                                Entrega e taxa são calculadas no checkout, depois do endereço.
+                            </p>
 
                             <div className='mt-6 space-y-3 text-center'>
                                 <button type='button' className='w-full px-4 py-2.5 text-white text-sm font-semibold rounded-md cursor-pointer bg-blue-600 hover:bg-blue-700 border border-blue-600' onClick={handleCheckout}>
