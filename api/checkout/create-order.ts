@@ -1,6 +1,6 @@
 import { FieldValue } from 'firebase-admin/firestore';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { adminDb } from '../_lib/firebaseAdmin';
+import { getAdminDb, ConfigError } from '../_lib/firebaseAdmin';
 import { getUidFromRequest } from '../_lib/auth';
 import { loadOrderContext } from '../_lib/loadOrderContext';
 import { PricingError } from '../_lib/pricing';
@@ -54,6 +54,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
+    const adminDb = getAdminDb();
+
     // Idempotência: dois cliques no botão não podem virar dois pedidos. Se já
     // existe um pedido com esta chave, devolvemos o mesmo em vez de criar outro.
     const existing = await adminDb
@@ -89,6 +91,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     return res.status(201).json({ orderId: orderRef.id, total: totals.total, reused: false });
   } catch (error) {
+    if (error instanceof ConfigError) {
+      console.error('Configuração do servidor incompleta:', error.message);
+      return res.status(500).json({ error: error.message, code: 'CONFIG' });
+    }
+
     if (error instanceof PricingError) {
       return res.status(422).json({ error: error.message, code: error.code });
     }

@@ -1,4 +1,4 @@
-import { adminDb } from './firebaseAdmin';
+import { getAdminDb } from './firebaseAdmin';
 import {
   PricingError,
   priceOrder,
@@ -32,6 +32,8 @@ export interface OrderContext {
  * fronteira vindo do navegador.
  */
 export async function loadOrderContext(uid: string, addressId: string): Promise<OrderContext> {
+  const adminDb = getAdminDb();
+
   const addressSnap = await adminDb.doc(`users/${uid}/addresses/${addressId}`).get();
 
   if (!addressSnap.exists) {

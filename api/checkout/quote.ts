@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { getUidFromRequest } from '../_lib/auth';
+import { ConfigError } from '../_lib/firebaseAdmin';
 import { loadOrderContext } from '../_lib/loadOrderContext';
 import { PricingError } from '../_lib/pricing';
 
@@ -32,6 +33,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const { totals } = await loadOrderContext(uid, addressId);
     return res.status(200).json(totals);
   } catch (error) {
+    if (error instanceof ConfigError) {
+      console.error('Configuração do servidor incompleta:', error.message);
+      return res.status(500).json({ error: error.message, code: 'CONFIG' });
+    }
+
     if (error instanceof PricingError) {
       return res.status(422).json({ error: error.message, code: error.code });
     }
