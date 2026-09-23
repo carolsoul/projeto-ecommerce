@@ -1,8 +1,8 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { getUidFromRequest } from '../_lib/auth';
-import { ConfigError } from '../_lib/firebaseAdmin';
-import { loadOrderContext } from '../_lib/loadOrderContext';
-import { PricingError } from '../_lib/pricing';
+import { getUidFromRequest } from '../_lib/auth.js';
+import { ConfigError } from '../_lib/firebaseAdmin.js';
+import { loadOrderContext } from '../_lib/loadOrderContext.js';
+import { PricingError } from '../_lib/pricing.js';
 
 /**
  * POST /api/checkout/quote

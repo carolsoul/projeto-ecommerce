@@ -1,9 +1,9 @@
 import { FieldValue } from 'firebase-admin/firestore';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { getAdminDb, ConfigError } from '../_lib/firebaseAdmin';
-import { getUidFromRequest } from '../_lib/auth';
-import { loadOrderContext } from '../_lib/loadOrderContext';
-import { PricingError } from '../_lib/pricing';
+import { getAdminDb, ConfigError } from '../_lib/firebaseAdmin.js';
+import { getUidFromRequest } from '../_lib/auth.js';
+import { loadOrderContext } from '../_lib/loadOrderContext.js';
+import { PricingError } from '../_lib/pricing.js';
 
 /**
  * POST /api/checkout/create-order

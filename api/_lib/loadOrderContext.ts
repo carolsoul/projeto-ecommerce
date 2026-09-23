@@ -1,11 +1,11 @@
-import { getAdminDb } from './firebaseAdmin';
+import { getAdminDb } from './firebaseAdmin.js';
 import {
   PricingError,
   priceOrder,
   toCartLines,
   type CatalogEntry,
   type OrderTotals,
-} from './pricing';
+} from './pricing.js';
 
 export interface ShippingAddress {
   recipient: string;

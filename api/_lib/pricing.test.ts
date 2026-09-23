@@ -4,7 +4,7 @@ import {
   shippingForState,
   toCartLines,
   type CatalogEntry,
-} from './pricing';
+} from './pricing.js';
 
 function catalogOf(...entries: CatalogEntry[]): Map<string, CatalogEntry> {
   return new Map(entries.map((entry) => [entry.sku, entry]));
