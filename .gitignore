@@ -24,6 +24,11 @@ dist-ssr
 *serviceAccount*.json
 service-account*.json
 
+# Cache do Firebase CLI. firebase.json, .firebaserc e firestore.indexes.json
+# são versionados de propósito — só esta pasta de trabalho fica de fora.
+.firebase/
+firebase-debug.log*
+
 .DS_Store
 *.suo
 *.ntvs*

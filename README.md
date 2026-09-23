@@ -145,7 +145,7 @@ O carrinho é sincronizado em tempo real via `onSnapshot`, então ele acompanha 
 
 ### Security Rules
 
-As regras completas estão em **[`firestore.rules`](firestore.rules)**, na raiz do projeto. Elas **não são aplicadas automaticamente**: cole o conteúdo no console do Firebase, em *Firestore Database → Regras*, e publique.
+As regras completas estão em **[`firestore.rules`](firestore.rules)**, na raiz do projeto. Elas **não são aplicadas automaticamente** — publique com `npx firebase-tools deploy --only firestore` (ver [Índices do Firestore](#índices-do-firestore)) ou cole o conteúdo no console do Firebase, em *Firestore Database → Regras*.
 
 Como as chaves do `.env.local` vão para o bundle do cliente, são as regras — não o sigilo dessas chaves — que realmente protegem o banco. Três pontos valem destaque:
 
@@ -256,9 +256,43 @@ Os dois estados da Home vivem na URL, não em estado de componente — o resulta
 
 **A busca filtra no cliente.** O Firestore não tem operador "contém" — só igualdade e prefixo. Para permitir buscar no meio da palavra e ignorar acento (`cafe` encontra `Café`), `SearchResults` carrega um recorte do catálogo (`SEARCH_FETCH_LIMIT`, hoje 300) e filtra em memória. Esse número é o limite honesto da abordagem: passando disso, o caminho é indexar em Algolia ou Typesense, **não** aumentar o teto.
 
-### Índice composto obrigatório
+---
 
-Filtrar por categoria e ordenar por data ao mesmo tempo (`where('category','==',x)` + `orderBy('createdAt','desc')`) exige um **índice composto** no Firestore. Ele não é criado sozinho: na primeira vez que alguém abrir `/?categoria=...`, o Firestore devolve um erro no console do navegador **com um link direto para criar o índice com um clique**. Depois de criado, leva um ou dois minutos para ficar pronto.
+## Índices do Firestore
+
+O Firestore nunca varre uma coleção inteira: toda consulta precisa ser respondida lendo um **trecho contíguo de um índice já ordenado**. É isso que faz o custo da consulta não depender do tamanho da coleção — e é também a origem das restrições dele.
+
+Índices de **campo único** são criados automaticamente. Índices **compostos** (dois ou mais campos ordenados juntos) não: sem eles a consulta simplesmente falha.
+
+Os deste projeto estão versionados em **[`firestore.indexes.json`](firestore.indexes.json)** — JSON não aceita comentário, então a explicação de cada um fica aqui:
+
+| Coleção | Campos | Serve a |
+| --- | --- | --- |
+| `products` | `category` ASC + `createdAt` DESC | `ProductList` filtrando por categoria com a paginação por cursor |
+| `orders` | `uid` ASC + `createdAt` DESC | a página "Meus pedidos" (ainda não implementada) |
+
+### Quando é preciso um composto
+
+O que exige índice composto é **misturar naturezas diferentes** — igualdade com ordenação, ou igualdade com desigualdade:
+
+| Consulta | Composto? |
+| --- | --- |
+| `where('uid','==')` | Não — índice automático |
+| `where('uid','==')` + `where('idempotencyKey','==')` | **Não** — só igualdades |
+| `where('category','==')` + `orderBy('createdAt')` | **Sim** |
+| `where('uid','==')` + `where('total','>',100)` | **Sim** |
+
+A segunda linha é o `create-order`: consultas com **apenas filtros de igualdade** são resolvidas por *zigzag merge join*, que percorre os índices automáticos de cada campo lado a lado. Não precisa de nada declarado.
+
+### Aplicando
+
+```bash
+npx firebase-tools deploy --only firestore
+```
+
+Publica regras e índices de uma vez (o `firebase.json` aponta para os dois arquivos, e o `.firebaserc` já traz o ID do projeto). Pede login na primeira execução.
+
+Sem o CLI, o caminho manual continua valendo: na primeira vez que a consulta roda, o Firestore devolve um erro no console do navegador **com um link direto para criar o índice com um clique**. Depois de criado, leva um ou dois minutos para ficar pronto.
 
 > Se a filtragem por categoria vier vazia ou falhar, procure no console por `The query requires an index` — é isso, e não o código.
 
