@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { CreditCard, QrCode } from 'lucide-react';
 import { db } from '../lib/firebase';
@@ -30,10 +30,7 @@ export default function Checkout() {
   const [orderId, setOrderId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  if (authLoading) {
-    return <p className='text-center py-20'>Autenticando usuário...</p>
-  }
+  const idempotencyKey = useRef<string | null>(null);
 
   // Prévia apenas visual, enquanto não há endereço. Frete, taxa e total só
   // existem depois que o servidor calcula — não são reproduzidos aqui.
@@ -82,38 +79,52 @@ export default function Checkout() {
     setError(null);
     setBusy(true);
 
+    // A chave fica no ref e sobrevive a uma tentativa que falhou: repetir o
+    // clique reaproveita o mesmo pedido em vez de criar um segundo.
+    if (idempotencyKey.current === null) {
+      idempotencyKey.current = crypto.randomUUID();
+    }
+
+    let createdId: string | null = null;
+    let checkoutUrl: string | null = null;
+    let failure: unknown = null;
+
     try {
-      // 1. Cria o pedido no seu banco (Mantendo sua idempotência perfeitamente intacta)
-      const result = await postJson<{ orderId: string }>('/api/checkout/create-order', {
+      // 1. Cria o pedido com os valores recalculados no servidor.
+      const order = await postJson<{ orderId: string }>('/api/checkout/create-order', {
         addressId: address.id,
         paymentMethod,
-        idempotencyKey: crypto.randomUUID(),
+        idempotencyKey: idempotencyKey.current,
       });
+      createdId = order.orderId;
 
-      const createdId = result.orderId;
-      setOrderId(createdId);
-
-      // 2. PLUG DO MERCADO PAGO: Chama a rota intermediária para gerar o checkout na Sandbox
-      // Esta rota também se beneficia do token injetado pelo passo 1
+      // 2. Troca o pedido pelo link do checkout do Mercado Pago. Nenhum valor
+      //    sobe nesta chamada: o servidor lê o total do próprio pedido.
       const preference = await postJson<{ url: string }>('/api/checkout/create-preference', {
-        orderId: createdId,
+        orderId: order.orderId,
       });
-
-      // 3. Redireciona o comprador para a tela segura de sandbox do Mercado Pago
-      if (preference.url) {
-        window.location.href = preference.url;
-      } else {
-        throw new Error('Não foi possível gerar o link de pagamento.');
-      }
-
+      checkoutUrl = preference.url;
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : 'Não foi possível processar o pagamento.'
-      );
-    } finally {
-      setBusy(false);
+      failure = err;
     }
-};
+
+    if (checkoutUrl !== null) {
+      // A partir daqui o comprador sai do nosso site. Os dados do cartão são
+      // digitados no domínio do Mercado Pago e não passam por aqui.
+      window.location.href = checkoutUrl;
+      return;
+    }
+
+    setBusy(false);
+
+    // O pedido pode ter sido criado antes da falha. Mostrar o número dá à
+    // pessoa algo concreto para citar no suporte.
+    if (createdId !== null) setOrderId(createdId);
+
+    const message =
+      failure instanceof Error ? failure.message : 'Não foi possível processar o pagamento.';
+    setError(message);
+  };
 
 
   if (loading) {
@@ -134,15 +145,28 @@ export default function Checkout() {
             {/* ── Entrega e pagamento ── */}
             <section className="w-full h-max">
               {orderId !== null ? (
-                <div className="rounded-md border border-green-200 bg-green-50 p-6">
-                  <h2 className="text-xl text-slate-900 font-semibold mb-2">Pedido criado</h2>
+                <div className="rounded-md border border-amber-200 bg-amber-50 p-6">
+                  <h2 className="text-xl text-slate-900 font-semibold mb-2">
+                    Pedido criado, pagamento não iniciado
+                  </h2>
                   <p className="text-sm text-slate-700">
                     Número do pedido: <span className="font-mono font-semibold">{orderId}</span>
                   </p>
                   <p className="text-sm text-slate-600 mt-4">
-                    A cobrança será feita na próxima etapa, quando a integração com o provedor de
-                    pagamento estiver ligada.
+                    O pedido está guardado, mas não conseguimos abrir a tela de pagamento. Tente de
+                    novo — nenhum pedido duplicado será criado.
                   </p>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setOrderId(null);
+                      setError(null);
+                    }}
+                    className="mt-6 px-3.5 py-2 text-white text-sm font-semibold rounded-md cursor-pointer bg-blue-600 hover:bg-blue-700 border border-blue-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                  >
+                    Tentar pagar novamente
+                  </button>
                 </div>
               ) : address === null ? (
                 <>
