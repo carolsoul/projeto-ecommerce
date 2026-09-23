@@ -16,14 +16,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const adminDb = getAdminDb();
     const orderDoc = await adminDb.collection('orders').doc(orderId).get();
 
-    // Segurança: o pedido existe e pertence a quem está logado?
     if (!orderDoc.exists || orderDoc.data()?.uid !== uid) {
       return res.status(404).json({ error: 'Pedido não encontrado.' });
     }
 
     const orderData = orderDoc.data()!;
 
-    // Cria a preferência na Sandbox do Mercado Pago
     const mpResponse = await fetch('https://mercadopago.com', {
       method: 'POST',
       headers: {
@@ -33,13 +31,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       body: JSON.stringify({
         items: [
           {
+            id: orderId,
             title: `Pedido #${orderId}`,
             quantity: 1,
-            unit_price: orderData.total, // Pega o total calculado de forma segura do banco
+            unit_price: orderData.total, 
             currency_id: 'BRL',
           }
         ],
-        external_reference: orderId, // Crucial: vincula o ID do pedido no Mercado Pago
+        external_reference: orderId, 
         back_urls: {
           success: 'https://vercel.app',
           failure: 'https://vercel.app',
@@ -48,9 +47,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }),
     });
 
+    if (!mpResponse.ok) {
+      const errorBody = await mpResponse.text();
+      console.error('Erro retornado pelo Mercado Pago:', errorBody);
+      return res.status(500).json({ error: 'Erro ao gerar preferência no Mercado Pago.' });
+    }
+
     const preference = await mpResponse.json();
 
-    // Retorna o link de testes para o frontend abrir
+    // Retorna o link de testes correto gerado pela API deles
     return res.status(200).json({ url: preference.sandbox_init_point });
 
   } catch (error) {
