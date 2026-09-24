@@ -110,6 +110,12 @@ export const Header: React.FC = () => {
                         </span>
                     </Link>
 
+                    <Link to='/orders' className='relative text-gray-600 hover:text-blue-500 transition-colors'>
+                    <span className='inline-flex items-center gap-1.5 text-sm font-medium text-gray-600 hover:text-blue-500 transition-colors cursor-pointer'>
+                        Pedidos
+                    </span>
+                    </Link>
+
                     {/* Entrar/Cadastrar ou saudação + sair - apenas desktop */}
                     {user ? (
                         <div className='hidden md:flex items-center gap-3'>
