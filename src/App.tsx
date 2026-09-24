@@ -18,6 +18,7 @@ import SignUp from "./pages/SignUp";
 //import Orders from "./pages/Orders";
 
 const Checkout = lazy(() => import('./pages/Checkout'));
+const CheckoutReturn = lazy(() => import('./pages/CheckoutReturn'));
 // telas de admin ficam em chunks separados
 const AdminLogin = lazy(() => import('./pages/admin/Login'));
 const ProductUpload = lazy(() => import('./pages/admin/ProductUpload'));
@@ -44,6 +45,9 @@ function App() {
                 {/* Checkout com header minimalista, com footer */}
                 <Route element={<CheckoutLayout />}>
                   <Route path="/checkout" element={<Checkout />} />
+                  {/* Volta do Mercado Pago. O id vai no caminho porque o MP
+                      anexa a query string dele por cima da nossa. */}
+                  <Route path="/checkout/retorno/:orderId" element={<CheckoutReturn />} />
                   {/*<Route path="/checkout/pagamento" element={<Payment />} /> */}
                 </Route>
               </Route>

@@ -117,14 +117,27 @@ export function buildPreferencePayload(
     });
   }
 
+  // As três voltam para a mesma tela, e o id vai no CAMINHO, não na query.
+  //
+  // Dois motivos. O primeiro é que o Mercado Pago anexa a query dele na volta
+  // (`status`, `collection_status`, `payment_id`, `external_reference`...), e a
+  // versão anterior mandava um `status=sucesso` nosso que colidia com o `status`
+  // reservado do MP — a mesma URL chegava com dois `status`, e qual deles o
+  // `URLSearchParams.get` devolve passa a ser sorte.
+  //
+  // O segundo é que não existe "URL de sucesso" confiável: qualquer pessoa
+  // digita o endereço na barra. Quem decide o que a tela mostra é o status
+  // gravado em `orders` pelo webhook. Ver `src/pages/CheckoutReturn.tsx`.
+  const returnUrl = `${siteUrl}/checkout/retorno/${encodeURIComponent(orderId)}`;
+
   const payload: PreferencePayload = {
     items,
     external_reference: orderId,
     notification_url: `${siteUrl}/api/webhooks/mercadopago`,
     back_urls: {
-      success: `${siteUrl}/checkout?status=sucesso&pedido=${orderId}`,
-      failure: `${siteUrl}/checkout?status=falha&pedido=${orderId}`,
-      pending: `${siteUrl}/checkout?status=pendente&pedido=${orderId}`,
+      success: returnUrl,
+      failure: returnUrl,
+      pending: returnUrl,
     },
     auto_return: 'approved',
     metadata: { order_id: orderId, uid: order.uid },

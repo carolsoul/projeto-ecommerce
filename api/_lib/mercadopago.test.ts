@@ -75,6 +75,31 @@ describe('buildPreferencePayload', () => {
     }
   });
 
+  it('manda as três back_urls para a tela de retorno, com o id no caminho', () => {
+    const payload = buildPreferencePayload('order-1', ORDER, SITE);
+    const esperada = `${SITE}/checkout/retorno/order-1`;
+
+    expect(payload.back_urls.success).toBe(esperada);
+    expect(payload.back_urls.failure).toBe(esperada);
+    expect(payload.back_urls.pending).toBe(esperada);
+  });
+
+  it('não põe query string própria na back_url', () => {
+    const payload = buildPreferencePayload('order-1', ORDER, SITE);
+
+    // O MP anexa a query dele na volta, incluindo um `status`. Um `status`
+    // nosso na mesma URL colidiria com o dele.
+    for (const url of Object.values(payload.back_urls)) {
+      expect(url).not.toContain('?');
+    }
+  });
+
+  it('escapa o id do pedido no caminho da back_url', () => {
+    const payload = buildPreferencePayload('a/../b', ORDER, SITE);
+
+    expect(payload.back_urls.success).toBe(`${SITE}/checkout/retorno/a%2F..%2Fb`);
+  });
+
   it('liga o pagamento ao pedido por external_reference', () => {
     const payload = buildPreferencePayload('order-42', ORDER, SITE);
 
