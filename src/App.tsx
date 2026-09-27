@@ -9,7 +9,7 @@ import StoreLayout from './layouts/StoreLayout';
 import CheckoutLayout from './layouts/CheckoutLayout';
 import FooterLayout from './layouts/FooterLayout'
 
-import  Home from './pages/Home';
+import Home from './pages/Home';
 import ProductPage from "./pages/ProductPage"
 import Cart from "./pages/Cart";
 import Wishlist from "./pages/Wishlist";
@@ -19,6 +19,7 @@ import SignUp from "./pages/SignUp";
 
 const Checkout = lazy(() => import('./pages/Checkout'));
 const CheckoutReturn = lazy(() => import('./pages/CheckoutReturn'));
+
 // telas de admin ficam em chunks separados
 const AdminLogin = lazy(() => import('./pages/admin/Login'));
 const ProductUpload = lazy(() => import('./pages/admin/ProductUpload'));
