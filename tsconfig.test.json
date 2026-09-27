@@ -5,5 +5,15 @@
     "types": ["vite/client", "node", "jest", "@testing-library/jest-dom"],
     "noEmit": true
   },
-  "include": ["src/**/*.test.ts", "src/**/*.test.tsx", "setup-tests.js"]
+  // O `exclude` do tsconfig.app.json é herdado pelo `extends` e vence o
+  // `include` abaixo — sem zerá-lo aqui, os testes de src/ que este projeto
+  // existe para cobrir ficavam de fora, e o editor não achava `describe`,
+  // `it` nem `expect` neles.
+  "exclude": [],
+  "include": [
+    "src/**/*.test.ts",
+    "src/**/*.test.tsx",
+    "api/**/*.test.ts",
+    "setup-tests.js"
+  ]
 }
