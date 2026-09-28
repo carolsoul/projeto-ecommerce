@@ -10,7 +10,13 @@ function catalogOf(...entries: CatalogEntry[]): Map<string, CatalogEntry> {
   return new Map(entries.map((entry) => [entry.sku, entry]));
 }
 
-const CAMISETA: CatalogEntry = { sku: 'cam-001', name: 'Camiseta', price: 50.0, stock: 10 };
+const CAMISETA: CatalogEntry = {
+  sku: 'cam-001',
+  name: 'Camiseta',
+  price: 50.0,
+  stock: 10,
+  imageUrl: 'https://exemplo.test/camiseta.webp',
+};
 
 describe('shippingForState', () => {
   it('cobra por região', () => {
@@ -77,7 +83,7 @@ describe('priceOrder', () => {
   });
 
   it('arredonda a taxa para centavos', () => {
-    const produto: CatalogEntry = { sku: 'x', name: 'X', price: 99.99, stock: 5 };
+    const produto: CatalogEntry = { sku: 'x', name: 'X', price: 99.99, stock: 5, imageUrl: '' };
     const result = priceOrder([{ sku: 'x', quantity: 1 }], catalogOf(produto), 'SP');
 
     // 3% de 99,99 = 2,9997 -> 3,00
@@ -87,7 +93,7 @@ describe('priceOrder', () => {
 
   it('não acumula erro de ponto flutuante', () => {
     // 0.1 + 0.2 em float dá 0.30000000000000004. Somando em centavos, não.
-    const produto: CatalogEntry = { sku: 'y', name: 'Y', price: 0.1, stock: 100 };
+    const produto: CatalogEntry = { sku: 'y', name: 'Y', price: 0.1, stock: 100, imageUrl: '' };
     const result = priceOrder([{ sku: 'y', quantity: 3 }], catalogOf(produto), 'SP');
 
     expect(result.subtotal).toBe(0.3);
