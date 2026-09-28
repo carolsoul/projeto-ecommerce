@@ -25,11 +25,10 @@ export interface OrderContext {
 }
 
 /**
- * Monta o pedido a partir do que está no Firestore — e só do que está lá.
+ * Monta o pedido a partir do que está no Firestore.
  *
- * O cliente informa apenas QUAL endereço usar. O carrinho, os preços e o
- * endereço em si são lidos pelo servidor. Nada de dinheiro atravessa a
- * fronteira vindo do navegador.
+ * O cliente informa QUAL endereço usar. O carrinho, preços e o
+ * endereço são lidos pelo servidor.
  */
 export async function loadOrderContext(uid: string, addressId: string): Promise<OrderContext> {
   const adminDb = getAdminDb();
@@ -42,8 +41,7 @@ export async function loadOrderContext(uid: string, addressId: string): Promise<
 
   const address = addressSnap.data() as ShippingAddress;
 
-  // Só sku e quantidade sobrevivem desta leitura: `toCartLines` descarta o
-  // `price` que o navegador gravou no documento do carrinho.
+  // Só sku e quantidade sobrevivem desta leitura: `toCartLines` descarta o `price` que o navegador gravou no documento do carrinho.
   const cartSnap = await adminDb.collection(`users/${uid}/cart`).get();
   const lines = toCartLines(
     cartSnap.docs.map((doc) => ({ sku: doc.id, quantity: doc.data().quantity }))
@@ -63,13 +61,19 @@ export async function loadOrderContext(uid: string, addressId: string): Promise<
   for (const snap of productSnaps) {
     if (!snap.exists) continue;
 
-    const data = snap.data() as { name: string; price: number; stock?: number | null };
+    const data = snap.data() as {
+      name: string;
+      price: number;
+      stock?: number | null;
+      imageUrl: string;
+    };
 
     catalog.set(snap.id, {
       sku: snap.id,
       name: data.name,
       price: data.price,
       stock: data.stock,
+      imageUrl: data.imageUrl,
     });
   }
 
