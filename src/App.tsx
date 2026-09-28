@@ -15,10 +15,10 @@ import Cart from "./pages/Cart";
 import Wishlist from "./pages/Wishlist";
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
-//import Orders from "./pages/Orders";
 
 const Checkout = lazy(() => import('./pages/Checkout'));
 const CheckoutReturn = lazy(() => import('./pages/CheckoutReturn'));
+const Orders = lazy(() => import('./pages/Orders'));
 
 // telas de admin ficam em chunks separados
 const AdminLogin = lazy(() => import('./pages/admin/Login'));
@@ -41,15 +41,15 @@ function App() {
                   <Route path="/wishlist" element={<Wishlist />} />
                   <Route path="/login" element={<Login />} />
                   <Route path="/signup" element={<SignUp />} />
+                  <Route path="/orders" element={<Orders />} />
                 </Route>
 
                 {/* Checkout com header minimalista, com footer */}
                 <Route element={<CheckoutLayout />}>
                   <Route path="/checkout" element={<Checkout />} />
                   {/* Volta do Mercado Pago. O id vai no caminho porque o MP
-                      anexa a query string dele por cima da nossa. */}
+                      anexa a query string dele por cima dessa. */}
                   <Route path="/checkout/retorno/:orderId" element={<CheckoutReturn />} />
-                  {/*<Route path="/checkout/pagamento" element={<Payment />} /> */}
                 </Route>
               </Route>
 
