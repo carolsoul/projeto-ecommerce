@@ -8,9 +8,7 @@ import { PricingError } from '../_lib/pricing.js';
 /**
  * POST /api/checkout/create-order
  *
- * Cria o pedido com os valores recalculados pelo servidor e status `pending`.
- * Ainda não cobra nada — a integração com o provedor de pagamento entra depois,
- * consumindo o total daqui.
+ * Cria o pedido com os valores recalculados pelo servidor e status `pending`. A integração com o provedor de pagamento entra consumindo o total daqui.
  *
  * Corpo: { addressId, paymentMethod, idempotencyKey }
  */
@@ -56,8 +54,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     const adminDb = getAdminDb();
 
-    // Idempotência: dois cliques no botão não podem virar dois pedidos. Se já
-    // existe um pedido com esta chave, devolvemos o mesmo em vez de criar outro.
+    // Idempotência: dois cliques no botão não viram dois pedidos. Se já existe um pedido com esta chave, devolve o mesmo em vez de criar outro.
     const existing = await adminDb
       .collection('orders')
       .where('uid', '==', uid)
@@ -72,9 +69,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const { address, totals } = await loadOrderContext(uid, addressId);
 
-    // Os itens e o endereço vão CONGELADOS para dentro do pedido. Se o catálogo
-    // mudar de preço amanhã, ou a pessoa editar o endereço cadastrado, este
-    // pedido continua registrando o que de fato foi comprado e para onde.
+    // Os itens e o endereço vão CONGELADOS para dentro do pedido.
     const orderRef = await adminDb.collection('orders').add({
       uid,
       status: 'pending',
@@ -89,6 +84,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       createdAt: FieldValue.serverTimestamp(),
     });
 
+    // A resposta é deliberadamente mínima: é tudo que o Checkout.tsx consome.
     return res.status(201).json({ orderId: orderRef.id, total: totals.total, reused: false });
   } catch (error) {
     if (error instanceof ConfigError) {

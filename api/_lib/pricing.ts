@@ -59,6 +59,7 @@ export interface CatalogEntry {
   sku: string;
   name: string;
   price: number;
+  imageUrl: string;
   stock?: number | null;
 }
 
@@ -68,6 +69,7 @@ export interface PricedItem {
   unitPrice: number;
   quantity: number;
   lineTotal: number;
+  imageUrl: string;
 }
 
 export interface OrderTotals {
@@ -78,8 +80,7 @@ export interface OrderTotals {
   total: number;
 }
 
-// Dinheiro em ponto flutuante acumula erro: 0.1 + 0.2 dá 0.30000000000000004.
-// Somamos tudo em centavos (inteiros) e só convertemos de volta no fim.
+// Dinheiro em ponto flutuante acumula erro: 0.1 + 0.2 dá 0.30000000000000004.Soma tudo em centavos (inteiros) e só converte de volta no fim.
 function toCents(value: number): number {
   return Math.round(value * 100);
 }
@@ -96,10 +97,7 @@ export function shippingForState(state: string): number | null {
 }
 
 /**
- * Converte os documentos crus do carrinho em linhas confiáveis.
- *
- * Descarta tudo menos SKU e quantidade — inclusive o `price` e o `name`, que
- * vieram do navegador. Nome e preço são relidos do catálogo depois.
+ * Converte os documentos crus do carrinho e descarta tudo menos SKU e quantidade. Nome e preço são relidos do catálogo depois.
  */
 export function toCartLines(rawItems: { sku: string; quantity: unknown }[]): CartLine[] {
   const lines: CartLine[] = [];
@@ -135,8 +133,7 @@ export class PricingError extends Error {
 /**
  * Calcula os valores do pedido.
  *
- * O preço unitário SEMPRE vem do `catalog` (lido de `products` no Firestore),
- * nunca do carrinho. Esta é a linha que fecha a brecha.
+ * O preço unitário SEMPRE vem do `catalog` (lido de `products` no Firestore), nunca do carrinho.
  */
 export function priceOrder(
   lines: CartLine[],
@@ -180,6 +177,7 @@ export function priceOrder(
       unitPrice: toReais(unitCents),
       quantity: line.quantity,
       lineTotal: toReais(lineCents),
+      imageUrl: product.imageUrl,
     });
   }
 
