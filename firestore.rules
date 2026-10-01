@@ -28,6 +28,7 @@ service cloud.firestore {
     // Catálogo: vitrine pública, escrita só por admin.
     // A leitura precisa ser aberta a visitantes deslogados — a Home, a busca e
     // os cards de categoria carregam produtos antes de qualquer login.
+
     match /products/{sku} {
       allow read: if true;
       allow write: if isAdmin();
@@ -35,6 +36,7 @@ service cloud.firestore {
 
     // Dados da pessoa: perfil, carrinho e favoritos. Cada uma só enxerga os
     // próprios. O wildcard cobre as subcoleções cart e wishlist.
+
     match /users/{uid} {
       allow read, write: if isOwner(uid);
 
@@ -51,9 +53,15 @@ service cloud.firestore {
     //
     // É isso que garante que o valor cobrado foi calculado no servidor: não
     // existe caminho pelo qual o navegador consiga gravar um total.
+
     match /orders/{orderId} {
-      allow read: if isSignedIn() && resource.data.uid == request.auth.uid;
+      allow read: if isSignedIn() && (resource.data.uid == request.auth.uid || isAdmin());
       allow write: if false;
+
+      match /tracking/{eventId} {
+        allow read: if isSignedIn() && (resource.data.uid == request.auth.uid || isAdmin());
+        allow write: if false;
+      }
     }
 
     // Lista de administradores.
@@ -63,6 +71,7 @@ service cloud.firestore {
     // acesso, e negar essa leitura para clientes comuns quebrava o app.
     // Ler o documento de outra pessoa continua negado, e escrever é negado
     // para todo mundo — admin se concede pelo console, nunca pela aplicação.
+
     match /admins/{uid} {
       allow read: if isOwner(uid);
       allow write: if false;

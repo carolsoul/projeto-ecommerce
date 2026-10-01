@@ -1,4 +1,4 @@
-import { Suspense, lazy } from "react";
+import { Suspense, lazy, type ComponentType } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -23,6 +23,8 @@ const Orders = lazy(() => import('./pages/Orders'));
 // telas de admin ficam em chunks separados
 const AdminLogin = lazy(() => import('./pages/admin/Login'));
 const ProductUpload = lazy(() => import('./pages/admin/ProductUpload'));
+const AdminOrders = lazy(() => import('./pages/admin/AdmOrders') as Promise<{ default: ComponentType<any> }>);
+const AdmOrderDetails = lazy(() => import('./pages/admin/AdmOrderDetails'));
 //import AdminDashboard from './pages/admin/AdminDashboard';
 
 function App() {
@@ -57,6 +59,8 @@ function App() {
               <Route element={<ProtectedRoute />}>
                 {/*<Route path="/admin" element={<AdminDashboard />} />*/}
                 <Route path="/admin/products/upload" element={<ProductUpload />} />
+                <Route path="/admin/orders" element={<AdminOrders />}/>
+                <Route path="/admin/orders/:orderId" element={<AdmOrderDetails />}/>
               </Route>
             </Routes>
           </Suspense>
