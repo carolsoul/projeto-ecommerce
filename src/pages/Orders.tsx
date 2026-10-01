@@ -211,7 +211,7 @@ export default function Orders() {
 
                       <div className="text-right">
                         <p className="text-lg font-semibold text-slate-900">
-                          R${order.total.toFixed(2)}
+                          {order.total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                         </p>
                         <p className="mt-3 text-sm text-slate-600">
                           {pieces} {pieces === 1 ? 'item' : 'itens'}
@@ -227,11 +227,24 @@ export default function Orders() {
                           <OrderHistoryItem item={item} />
                         </li>
                       ))}
+                      <li className='mt-6 flex flex-wrap gap-4'>
+                        {["Ver  datalhes", "Pedir novamente"].map((action) => (
+                          <a
+                            key={action}
+                            href='#'
+                            className='flex items-center gap-2.5 px-3.5 py-2 text-slate-900 text-sm font-medium rounded-md bg-white border border-slate-300 hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500'
+                          > 
+                          {action}
+                          </a>
+                        ))}
+                      </li>
                     </ul>
                   </li>
                 );
               })}
             </ul>
+
+            
 
             {orders.length === ORDERS_SCAN_LIMIT && (
               <p className="mt-6 text-center text-sm text-slate-500">
