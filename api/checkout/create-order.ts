@@ -28,6 +28,7 @@ function readBody(req: VercelRequest) {
   return { addressId, idempotencyKey, paymentMethod };
 }
 
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');

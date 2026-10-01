@@ -45,6 +45,11 @@ export interface Order {
   mercadopagoPreferenceId?: string;
   mercadopagoPaymentId?: string;
   paymentIssue?: 'underpaid';
+  fulfillment?: {
+    status: FulfillmentStatus;
+  };
+  trackingCode?: string,
+  carrier?: string,
 }
 
 /**
@@ -60,4 +65,15 @@ export interface OrderTotals {
   total: number;
 }
 
-export type OrderStatus = 'pending' | 'awaiting_payment' | 'paid' | 'failed' | 'cancelled';
+export interface TrackingEvent {
+  id: string,
+  uid: string,
+  status: FulfillmentStatus,
+  description: string,
+  location?: string,
+  occurredAt: Timestamp
+  source: 'system' | 'admin' | 'carrier'
+}
+
+export type OrderStatus = 'pending' | 'awaiting_payment' | 'paid' | 'failed' | 'cancelled'; 
+export type FulfillmentStatus = 'processing' | 'shipped' | 'delivered' | 'delivery_failed' | 'returned';
