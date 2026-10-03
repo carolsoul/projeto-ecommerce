@@ -3,44 +3,16 @@ import { db } from '../lib/firebase';
 import { collection, query, where, orderBy, onSnapshot, limit } from 'firebase/firestore';
 import { useAuth } from '../context/useAuth';
 import type { Order, OrderStatus } from '../types/order';
+import {
+  PAYMENT_STATUS,
+  PAYMENT_STATUS_KEYS,
+  paymentPresentation,
+} from '../lib/orderStatus';
 import { OrderHistoryItem } from '../components/OrderHistoryItem';
 
 type Phase = 'loading' | 'ready' | 'unauthenticated' | 'missing' | 'denied' | 'empty';
 
 const ORDERS_SCAN_LIMIT = 10;
-
-const STATUS = {
-  paid: {
-    label: 'Pago',
-    className: 'bg-emerald-100 text-emerald-700',
-  },
-  awaiting_payment: {
-    label: 'Aguardando pagamento',
-    className: 'bg-amber-100 text-amber-700',
-  },
-  pending: {
-    label: 'Pendente',
-    className: 'bg-blue-100 text-slate-700',
-  },
-  failed: {
-    label: 'Falhou',
-    className: 'bg-red-100 text-red-700',
-  },
-  cancelled: {
-    label: 'Cancelado',
-    className: 'bg-gray-100 text-gray-700',
-  },
-} as const satisfies Record<OrderStatus, { label: string; className: string }>;
-
-const STATUS_KEYS = Object.keys(STATUS) as OrderStatus[];
-
-/**
- * Para status que o front não conhece, campo corrompido, ou um status novo no servidor não cair em pendente
- */
-const UNKNOWN_STATUS = {
-  label: 'Status desconhecido',
-  className: 'bg-slate-100 text-slate-700',
-} as const;
 
 const BUTTON_BASE =
   'px-3.5 py-2 text-sm font-medium rounded-md border transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500';
@@ -150,7 +122,7 @@ export default function Orders() {
               Todos os pedidos
             </button>
 
-            {STATUS_KEYS.map((statusKey) => (
+            {PAYMENT_STATUS_KEYS.map((statusKey) => (
               <button
                 key={statusKey}
                 type="button"
@@ -158,7 +130,7 @@ export default function Orders() {
                 onClick={() => setSelectedStatus(statusKey)}
                 className={`${BUTTON_BASE} ${selectedStatus === statusKey ? BUTTON_ACTIVE : BUTTON_IDLE}`}
               >
-                {STATUS[statusKey].label}
+                {PAYMENT_STATUS[statusKey].label}
               </button>
             ))}
           </div>
@@ -180,7 +152,7 @@ export default function Orders() {
           <>
             <ul className="mt-6 space-y-6">
               {visibleOrders.map((order) => {
-                const orderStatus = STATUS[order.status] ?? UNKNOWN_STATUS;
+                const orderStatus = paymentPresentation(order.status);
                 const items = order.items ?? [];
                 const pieces = items.reduce((total, item) => total + item.quantity, 0);
 
