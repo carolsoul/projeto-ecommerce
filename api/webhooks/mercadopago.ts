@@ -131,7 +131,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(200).json({ received: true, ignored: true });
     }
 
-    const order = orderSnap.data() as { total?: unknown; status?: unknown };
+    const order = orderSnap.data() as { total?: unknown; status?: unknown; fulfillment?: unknown };
 
     // Um pedido já pago não volta atrás por causa de uma notificação atrasada —
     // e elas chegam fora de ordem com frequência.
@@ -156,11 +156,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(200).json({ received: true, underpaid: true });
     }
 
-    await orderRef.update({
-      status,
+    await orderRef.update({ fulfillment: {
+      status: 'processing',
       mercadopagoPaymentId: paymentId,
       updatedAt: FieldValue.serverTimestamp(),
-    });
+    }});
 
     return res.status(200).json({ received: true, status });
   } catch (error) {
