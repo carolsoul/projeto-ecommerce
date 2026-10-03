@@ -3,7 +3,7 @@ import { useEffect, useState, useRef } from 'react';
 import { collection, onSnapshot, query, orderBy, doc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import type { Order, TrackingEvent } from '../../types/order';
-import { paymentPresentation, fulfillmentPresentation, FULFILLMENT_STATUS, nextStatusesFor } from '../../lib/orderStatus';
+import { paymentPresentation, fulfillmentPresentation, nextStatusesFor } from '../../lib/orderStatus';
 import { postJson, ApiError } from '../../lib/api';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
