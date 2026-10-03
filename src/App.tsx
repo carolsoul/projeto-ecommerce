@@ -19,6 +19,7 @@ import SignUp from "./pages/SignUp";
 const Checkout = lazy(() => import('./pages/Checkout'));
 const CheckoutReturn = lazy(() => import('./pages/CheckoutReturn'));
 const Orders = lazy(() => import('./pages/Orders'));
+const OrderTracking = lazy(() => import('./pages/OrderTracking'));
 
 // telas de admin ficam em chunks separados
 const AdminLogin = lazy(() => import('./pages/admin/Login'));
@@ -44,6 +45,7 @@ function App() {
                   <Route path="/login" element={<Login />} />
                   <Route path="/signup" element={<SignUp />} />
                   <Route path="/orders" element={<Orders />} />
+                  <Route path="/orders/:orderId" element={<OrderTracking />} />
                 </Route>
 
                 {/* Checkout com header minimalista, com footer */}

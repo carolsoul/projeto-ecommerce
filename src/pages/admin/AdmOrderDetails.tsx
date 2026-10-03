@@ -281,9 +281,7 @@ export default function AdmOrderDetails() {
                                         <p className='mt-1 text-sm text-slate-600'>
                                             Localização: {event.location || 'Não informada'}
                                         </p>
-                                        <p className='mt-1 text-sm text-slate-600'>
-                                            Fonte: {event.source || 'Desconhecida'}
-                                        </p>
+                                        
                                     </div>
 
                                     <div className='w-7 h-7 shrink-0 border-2 border-green-600 bg-transparent flex items-center justify-center rounded-full'>

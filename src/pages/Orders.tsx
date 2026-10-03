@@ -9,6 +9,7 @@ import {
   paymentPresentation,
 } from '../lib/orderStatus';
 import { OrderHistoryItem } from '../components/OrderHistoryItem';
+import { Link } from 'react-router-dom';
 
 type Phase = 'loading' | 'ready' | 'unauthenticated' | 'missing' | 'denied' | 'empty';
 
@@ -199,17 +200,19 @@ export default function Orders() {
                           <OrderHistoryItem item={item} />
                         </li>
                       ))}
+
                       <li className='mt-6 flex flex-wrap gap-4'>
                         {["Ver  datalhes", "Pedir novamente"].map((action) => (
-                          <a
+                          <Link
                             key={action}
-                            href='#'
+                            to={action === "Ver  datalhes" ? `/orders/${order.id}` : `/orders/${order.id}/reorder`}
                             className='flex items-center gap-2.5 px-3.5 py-2 text-slate-900 text-sm font-medium rounded-md bg-white border border-slate-300 hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500'
                           > 
                           {action}
-                          </a>
+                          </Link>
                         ))}
                       </li>
+
                     </ul>
                   </li>
                 );
