@@ -64,7 +64,7 @@ export default function AdmOrders() {
                               {order.total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                            </td>
                             <td className="px-4 py-3 text-sm text-slate-500 font-medium">{order.status}</td>
-                            <td className="px-4 py-3 text-sm text-slate-500 font-medium">{order.fulfillment?.status}</td>
+                            <td className="px-4 py-3 text-sm text-slate-500 font-medium">{order.fulfillment?.status ?? 'Não iniciado'}</td>
                            <td className="px-4 py-3">
                               <Link to={`/admin/orders/${order.id}`} className="px-2.5 py-1.5 text-slate-900 text-sm font-semibold rounded-md cursor-pointer bg-white hover:bg-gray-100 border border-slate-300 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">
                                  Detalhes
