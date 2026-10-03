@@ -131,7 +131,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(200).json({ received: true, ignored: true });
     }
 
-    const order = orderSnap.data() as { total?: unknown; status?: unknown; fulfillment?: unknown };
+    const order = orderSnap.data() as {
+      uid?: unknown;
+      total?: unknown;
+      status?: unknown;
+      items?: unknown;
+      fulfillment?: unknown;
+    };
 
     // Um pedido já pago não volta atrás por causa de uma notificação atrasada —
     // e elas chegam fora de ordem com frequência.
@@ -156,11 +162,53 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(200).json({ received: true, underpaid: true });
     }
 
-    await orderRef.update({ fulfillment: {
-      status: 'processing',
+    // O `status` mapeado é o campo mais importante desta rota — é ele que tira o
+    // pedido de `awaiting_payment`. Os demais campos são acessórios.
+    const orderUpdate: Record<string, unknown> = {
+      status,
       mercadopagoPaymentId: paymentId,
       updatedAt: FieldValue.serverTimestamp(),
-    }});
+    };
+
+    // Só pagamento aprovado inicia a esteira de entrega. Este mesmo `update`
+    // atende `pending`, `failed` e `cancelled`, e nenhum desses deveria marcar o
+    // pedido como "Preparando".
+    //
+    // A checagem de ausência é a trava contra notificação atrasada: um pedido já
+    // despachado não pode voltar para `processing`. A guarda de `alreadyPaid`
+    // acima barra a maioria desses casos, mas esta é explícita.
+    if (status === 'paid' && order.fulfillment === undefined) {
+      orderUpdate.fulfillment = {
+        status: 'processing',
+        updatedAt: FieldValue.serverTimestamp(),
+      };
+    }
+
+    const batch = adminDb.batch();
+    batch.update(orderRef, orderUpdate);
+
+    // O carrinho é esvaziado AQUI, e não em create-order nem na volta do
+    // Mercado Pago. Este é o único ponto que sabe, com autoridade, que o
+    // dinheiro entrou: limpar na criação do pedido faria a pessoa perder o
+    // carrinho ao abandonar o pagamento, e limpar na back_url depende de um
+    // redirect que pode nunca acontecer.
+    //
+    // Apaga só os SKUs que foram comprados, não a coleção inteira: se algo foi
+    // adicionado enquanto o pagamento processava, aquele item não foi pago e
+    // deve continuar lá. O id do documento do carrinho é o próprio SKU (ver
+    // loadOrderContext.ts, que lê `sku: doc.id`).
+    //
+    // Vai no mesmo commit que o update do pedido de propósito: separados, uma
+    // falha deixaria o carrinho cheio depois da compra, ou vazio sem pedido pago.
+    if (status === 'paid' && typeof order.uid === 'string' && Array.isArray(order.items)) {
+      for (const item of order.items as { sku?: unknown }[]) {
+        if (typeof item?.sku !== 'string' || item.sku === '') continue;
+
+        batch.delete(adminDb.doc(`users/${order.uid}/cart/${item.sku}`));
+      }
+    }
+
+    await batch.commit();
 
     return res.status(200).json({ received: true, status });
   } catch (error) {
