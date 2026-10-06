@@ -19,14 +19,14 @@ import SignUp from "./pages/SignUp";
 const Checkout = lazy(() => import('./pages/Checkout'));
 const CheckoutReturn = lazy(() => import('./pages/CheckoutReturn'));
 const Orders = lazy(() => import('./pages/Orders'));
-const OrderTracking = lazy(() => import('./pages/OrderTracking'));
+const OrderTracking = lazy(() => import('./pages/OrderTracking'))
 
 // telas de admin ficam em chunks separados
 const AdminLogin = lazy(() => import('./pages/admin/Login'));
 const ProductUpload = lazy(() => import('./pages/admin/ProductUpload'));
 const AdminOrders = lazy(() => import('./pages/admin/AdmOrders') as Promise<{ default: ComponentType<any> }>);
 const AdmOrderDetails = lazy(() => import('./pages/admin/AdmOrderDetails'));
-//import AdminDashboard from './pages/admin/AdminDashboard';
+const AdminDashboard = lazy(() => import ('./pages/admin/AdminDashboard'));
 
 function App() {
   return (
@@ -59,7 +59,7 @@ function App() {
 
               <Route path="/admin/login" element={<AdminLogin />} />
               <Route element={<ProtectedRoute />}>
-                {/*<Route path="/admin" element={<AdminDashboard />} />*/}
+                <Route path="/admin/dashboard" element={<AdminDashboard />} />
                 <Route path="/admin/products/upload" element={<ProductUpload />} />
                 <Route path="/admin/orders" element={<AdminOrders />}/>
                 <Route path="/admin/orders/:orderId" element={<AdmOrderDetails />}/>
