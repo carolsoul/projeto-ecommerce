@@ -1,12 +1,12 @@
 import { createContext, useContext } from 'react';
 import { type CartItem } from '../types/cart';
-import { type Product } from '../types/products';
+import { type CartableProduct } from '../types/products';
 
 export interface CartContextType {
   items: CartItem[];
   itemCount: number;
   loading: boolean;
-  addItem: (product: Product, quantity?: number) => Promise<void>;
+  addItem: (product: CartableProduct, quantity?: number) => Promise<void>;
   removeItem: (sku: string) => Promise<void>;
   updateQuantity: (sku: string, quantity: number) => Promise<void>;
 }
