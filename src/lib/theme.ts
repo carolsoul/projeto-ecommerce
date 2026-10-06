@@ -1,17 +1,5 @@
 /**
  * Paleta da loja, em classes completas do Tailwind.
- *
- * São strings prontas, e não pedaços para montar, porque o Tailwind varre o
- * código-fonte em busca de nomes de classe literais — uma classe montada em
- * runtime (`bg-[${cor}]`) simplesmente não é gerada no CSS final.
- *
- * Este é o único lugar que define cor na loja. Trocar a identidade visual é
- * trocar os valores daqui; nenhum componente deve carregar hex próprio.
- *
- * O que NÃO mora aqui, de propósito: as cores que carregam significado em vez
- * de identidade. Os badges de status em `orderStatus.ts` (verde para pago,
- * vermelho para falhou) e os tons de sucesso e erro do CheckoutReturn seguem
- * semânticos — pintá-los com a marca custaria informação.
  */
 
 /** Fundo das páginas da loja, antigo FBEDE6. */

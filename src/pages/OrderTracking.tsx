@@ -6,6 +6,7 @@ import type { Order, TrackingEvent } from '../types/order';
 import { OrderItemImage } from '../components/OrderItemImage';
 import { fulfillmentPresentation, paymentPresentation, remainingSteps } from '../lib/orderStatus';
 import { useParams } from 'react-router-dom';
+import { BORDER, BRAND, CARD, DANGER, DIVIDE, LG_BORDER, MUTED, RING_GAP, SUBTLE } from '../lib/theme';
 
 type Phase = 'loading' | 'ready' | 'unauthenticated' | 'missing' | 'denied' | 'error';
 
@@ -121,13 +122,11 @@ export default function OrderTracking() {
             <div className='max-w-6xl max-lg:max-w-2xl mx-auto'>
 
                 <div>
-                    <h1 className='text-2xl font-bold text-slate-900'>Rastreamento do Pedido</h1>
-                    <p className='text-base text-slate-600 mt-4'>
-                        ID do pedido: <span className='font-medium text-slate-900'>{order.id}</span>
+                    <h1 className={`text-2xl font-bold ${BRAND}`}>Rastreamento do Pedido</h1>
+                    <p className={`text-base ${MUTED} mt-4`}>
+                        ID do pedido: <span className={`font-medium ${BRAND}`}>{order.id}</span>
                     </p>
 
-                    {/* Os dois eixos, lado a lado: pagamento e entrega são
-                        independentes, e o cliente quer ver os dois de saída. */}
                     <div className='mt-4 flex flex-wrap items-center gap-3'>
                         <span className={`rounded-md px-2.5 py-1.5 text-xs font-medium ${paymentPresentation(order.status).className}`}>
                             {paymentPresentation(order.status).label}
@@ -149,21 +148,19 @@ export default function OrderTracking() {
                                 Produtos
                             </h2>
 
-                            <ul className='divide-y divide-slate-300' role='list'>
+                            <ul className={`divide-y ${DIVIDE}`} role='list'>
                                 {order.items.map((item) => (
                                     <li key={item.sku} className='grid items-center gap-4 p-4 sm:grid-cols-3'>
                                         <div className='col-span-2 flex items-center gap-4'>
                                             <OrderItemImage item={item} className='w-20 h-20' size={80} />
                                             <div>
-                                                <h3 className='text-sm font-semibold text-slate-900'>{item.name}</h3>
-                                                <p className='text-xs font-medium text-slate-600 mt-2'>Quantidade: <span className='font-medium'>{item.quantity}</span>
+                                                <h3 className={`text-sm font-semibold ${BRAND}`}>{item.name}</h3>
+                                                <p className={`text-xs font-medium ${MUTED} mt-2`}>Quantidade: <span className='font-medium'>{item.quantity}</span>
                                                 </p>
                                             </div>
                                         </div>
                                         <div className='sm:ml-auto'>
-                                            {/* lineTotal, não unitPrice: é o valor desta linha do
-                                                pedido, já multiplicado pela quantidade. */}
-                                            <p className='text-sm font-semibold text-slate-900'>{currency(item.lineTotal)}</p>
+                                            <p className={`text-sm font-semibold ${BRAND}`}>{currency(item.lineTotal)}</p>
                                         </div>
                                     </li>
                                 ))}
@@ -172,33 +169,33 @@ export default function OrderTracking() {
 
                         {/* Info de pagamento */}
 
-                        <section className='bg-gray-100 rounded-md p-6 h-max mt-8' aria-labelledby='billing-heading'>
-                            <h2 id='billing-heading' className='text-base font-semibold text-slate-900 border-b border-slate-300 pb-2'>
+                        <section className={`${CARD} rounded-md p-6 h-max mt-8`} aria-labelledby='billing-heading'>
+                            <h2 id='billing-heading' className={`text-base font-semibold ${BRAND} border-b ${BORDER} pb-2`}>
                                 Detalhes de Pagamento
                             </h2>
                             <ul className='font-medium mt-6 space-y-4' role='list'>
 
-                                <li className='flex flex-wrap gap-4 text-slate-600 text-sm'>Subtotal:
-                                    <span className='ml-auto text-slate-900 font-semibold'>
+                                <li className={`flex flex-wrap gap-4 ${MUTED} text-sm`}>Subtotal:
+                                    <span className={`ml-auto ${BRAND} font-semibold`}>
                                         {order.subtotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                                     </span>
                                 </li>
 
-                                <li className='flex flex-wrap gap-4 text-slate-600 text-sm'>Frete: 
-                                    <span className='ml-auto text-slate-900 font-semibold'>
+                                <li className={`flex flex-wrap gap-4 ${MUTED} text-sm`}>Frete: 
+                                    <span className={`ml-auto ${BRAND} font-semibold`}>
                                         {order.shipping.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                                     </span>
                                 </li>
 
-                                <li className='flex flex-wrap gap-4 text-slate-600 text-sm'>Taxa: 
-                                    <span className='ml-auto text-slate-900 font-semibold'>
+                                <li className={`flex flex-wrap gap-4 ${MUTED} text-sm`}>Taxa: 
+                                    <span className={`ml-auto ${BRAND} font-semibold`}>
                                         {order.tax.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                                     </span>
                                 </li>
 
-                                <hr className='border-slate-300'/>
+                                <hr className={`${BORDER}`}/>
 
-                                <li className='text-sm flex flex-wrap gap-4 text-slate-900 font-semibold'>Total: 
+                                <li className={`text-sm flex flex-wrap gap-4 ${BRAND} font-semibold`}>Total: 
                                     <span className='ml-auto'> {order.total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} </span>
                                 </li>
                             </ul>
@@ -208,10 +205,10 @@ export default function OrderTracking() {
                     {/* COLUNA DA DIREITA */}
 
                     {/*Linha do tempo */}
-                    <aside className='lg:border-l lg:border-slate-300 lg:pl-10 pl-4 h-full' aria-labelledby='timeline-heading'>
+                    <aside className={`lg:border-l ${LG_BORDER} lg:pl-10 pl-4 h-full`} aria-labelledby='timeline-heading'>
                         <h2 id="timeline-heading" className="sr-only">Rastreamento do pedido</h2>
                         {eventsFailed ? (
-                            <p className='mt-2 text-sm text-red-600'>Não foi possível carregar o rastreamento do pedido.</p>
+                            <p className={`mt-2 text-sm ${DANGER}`}>Não foi possível carregar o rastreamento do pedido.</p>
                         ) : events.length === 0 && futureSteps.length === 0 ? (
                             <p className='mt-2 text-sm'>Nenhum evento registrado</p>
                         ) : (
@@ -222,17 +219,17 @@ export default function OrderTracking() {
                                     </div>
                                 )}
 
-                                <ol className='relative border-s border-slate-300' aria-current='step'>
+                                <ol className={`relative border-s ${BORDER}`} aria-current='step'>
                                     {futureSteps.map((status) => {
                                         const { label, icon: Icon } = fulfillmentPresentation(status);
 
                                         return (
                                             <li key={status} className='mb-10 ms-7 opacity-50'>
-                                                <span className='absolute -start-3.5 flex h-7 w-7 items-center justify-center rounded-full bg-slate-100 text-slate-400 ring-8 ring-white'>
+                                                <span className={`absolute -start-3.5 flex h-7 w-7 items-center justify-center rounded-full ${CARD} ${SUBTLE} ring-8 ${RING_GAP}`}>
                                                     <Icon className='size-4' aria-hidden='true' />
                                                 </span>
-                                                <p className='mb-0.5 text-sm text-slate-500'>Previsto</p>
-                                                <p className='text-base font-medium text-slate-500'>{label}</p>
+                                                <p className={`mb-0.5 text-sm ${SUBTLE}`}>Previsto</p>
+                                                <p className={`text-base font-medium ${SUBTLE}`}>{label}</p>
                                             </li>
                                         );
                                     })}
@@ -243,11 +240,11 @@ export default function OrderTracking() {
 
                                         return (
                                             <li key={event.id} className='mb-10 ms-7'>
-                                                <span className={`absolute -start-3.5 flex h-7 w-7 items-center justify-center rounded-full ring-8 ring-white ${className}`}>
+                                                <span className={`absolute -start-3.5 flex h-7 w-7 items-center justify-center rounded-full ring-8 ${RING_GAP} ${className}`}>
                                                     <Icon className='size-4' aria-hidden='true' />
                                                 </span>
 
-                                                <p className='mb-0.5 text-sm text-slate-600'>
+                                                <p className={`mb-0.5 text-sm ${MUTED}`}>
                                                     {occurredAt ? (
                                                         <time dateTime={occurredAt.toISOString()}>
                                                             {dateFormatter.format(occurredAt)}
@@ -257,14 +254,14 @@ export default function OrderTracking() {
                                                     )}
                                                 </p>
 
-                                                <p className='text-base font-semibold text-slate-900'>{label}</p>
+                                                <p className={`text-base font-semibold ${BRAND}`}>{label}</p>
 
                                                 {event.description && (
-                                                    <p className='text-sm font-normal text-slate-600'>{event.description}</p>
+                                                    <p className={`text-sm font-normal ${MUTED}`}>{event.description}</p>
                                                 )}
 
                                                 {event.location && (
-                                                    <p className='mt-1 text-xs text-slate-500'>{event.location}</p>
+                                                    <p className={`mt-1 text-xs ${SUBTLE}`}>{event.location}</p>
                                                 )}
                                             </li>
                                         );

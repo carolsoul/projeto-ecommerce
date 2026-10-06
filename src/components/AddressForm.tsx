@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { addressSchema, type AddressFormData } from '../schemas/addressSchema';
+import { ACCENT, BORDER, BRAND, BRAND_BG, CARD, DANGER, FOCUS, HOVER_BRAND, PINK_HOVER, SUBTLE } from '../lib/theme';
 
 interface AddressFormProps {
   onSubmitSuccess: (data: AddressFormData) => void;
@@ -15,10 +16,9 @@ interface ViaCEPResponse {
   erro?: boolean;
 }
 
-const INPUT_CLASS =
-  'px-3 py-2.5 text-sm text-slate-900 rounded-md bg-white w-full outline-1 -outline-offset-1 outline-slate-300 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600';
-const LABEL_CLASS = 'mb-2 text-slate-900 font-medium text-sm inline-block';
-const ERROR_CLASS = 'mt-1 text-xs text-red-600';
+const INPUT_CLASS = `px-3 py-2.5 text-sm ${BRAND} rounded-2xl ${CARD} w-full ${FOCUS}`;
+const LABEL_CLASS = `mb-2 ${BRAND} font-medium text-sm inline-block`;
+const ERROR_CLASS = `mt-1 text-xs ${DANGER}`;
 
 export function AddressForm({ onSubmitSuccess }: AddressFormProps) {
   const {
@@ -49,21 +49,14 @@ export function AddressForm({ onSubmitSuccess }: AddressFormProps) {
   const [isLookingUpCep, setIsLookingUpCep] = useState(false);
   const pendingLookup = useRef<AbortController | null>(null);
 
-  // Preencher o endereço a partir do CEP é um EVENTO ("a pessoa terminou de
-  // digitar"), não um estado observado. Por isso roda no onBlur e lê o valor
-  // com getValues na hora, em vez de um useEffect com watch: assim digitar não
-  // redesenha o formulário, que é justamente o motivo de usar react-hook-form.
+  // Preencher o endereço a partir do CEP é um EVENTO. Por isso roda no onBlur e lê o valor com getValues na hora, em vez de um useEffect com watch.
   //
-  // O try/catch envolve só a chamada de rede, e toda a decisão fica fora dele:
-  // o babel-plugin-react-compiler desiste de memoizar o componente inteiro se
-  // encontrar `finally`, ou `??`/`?.`/ternário dentro de um try/catch.
+  // O try/catch envolve só a chamada de rede, e toda a decisão fica fora dele:  o babel-plugin-react-compiler desiste de memoizar o componente inteiro se encontrar `finally`, ou `??`/`?.`/ternário dentro de um try/catch.
   const lookupCep = async () => {
     const cep = getValues('cep').replace(/\D/g, '');
     if (cep.length !== 8) return;
 
-    // Respostas de rede não voltam na ordem em que saíram. Sem cancelar a
-    // anterior, uma resposta antiga pode chegar por último e sobrescrever o
-    // endereço certo pelo errado.
+    // Respostas de rede não voltam na ordem em que saíram.
     pendingLookup.current?.abort();
     const controller = new AbortController();
     pendingLookup.current = controller;
@@ -82,7 +75,6 @@ export function AddressForm({ onSubmitSuccess }: AddressFormProps) {
       failed = true;
     }
 
-    // Uma busca mais recente assumiu o lugar desta — descarta o resultado.
     if (controller.signal.aborted) return;
 
     setIsLookingUpCep(false);
@@ -110,7 +102,7 @@ export function AddressForm({ onSubmitSuccess }: AddressFormProps) {
   return (
     <form onSubmit={handleSubmit(onSubmitSuccess)}>
       <fieldset>
-        <legend className="text-xl text-slate-900 font-semibold mb-6">Detalhes da entrega</legend>
+        <legend className={`${BRAND} text-2xl font-bold mb-6`}>Detalhes da entrega</legend>
 
         <div className="space-y-6">
           <div>
@@ -176,7 +168,7 @@ export function AddressForm({ onSubmitSuccess }: AddressFormProps) {
                 aria-describedby={errors.cep ? 'address-cep-error' : undefined}
                 className={INPUT_CLASS}
               />
-              {isLookingUpCep && <p className="mt-1 text-xs text-slate-500">Buscando endereço...</p>}
+              {isLookingUpCep && <p className={`mt-1 text-xs ${SUBTLE}`}>Buscando endereço...</p>}
               {errors.cep && (
                 <p id="address-cep-error" className={ERROR_CLASS}>
                   {errors.cep.message}
@@ -305,27 +297,14 @@ export function AddressForm({ onSubmitSuccess }: AddressFormProps) {
             </div>
           </div>
 
-          <div>
-            <label htmlFor="address-label" className={LABEL_CLASS}>
-              Apelido do endereço (opcional)
-            </label>
-            <input
-              {...register('label')}
-              id="address-label"
-              type="text"
-              placeholder="Casa, Trabalho..."
-              className={INPUT_CLASS}
-            />
-          </div>
-
           <div className="flex items-center">
             <input
               {...register('isDefault')}
               id="address-is-default"
               type="checkbox"
-              className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+              className={`h-4 w-4 rounded border ${BORDER} ${CARD} ${BRAND} ${ACCENT} ${FOCUS}`}
             />
-            <label htmlFor="address-is-default" className="ml-3 text-sm text-slate-700">
+            <label htmlFor="address-is-default" className={`ml-3 text-sm ${BRAND}`}>
               Usar como endereço de entrega padrão
             </label>
           </div>
@@ -336,7 +315,7 @@ export function AddressForm({ onSubmitSuccess }: AddressFormProps) {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full px-3.5 py-2 text-white text-sm font-semibold rounded-md cursor-pointer bg-blue-600 hover:bg-blue-700 border border-blue-600 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:border-slate-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+          className={`w-full px-6 py-2 text-white text-sm font-semibold rounded-4xl cursor-pointer ${BRAND_BG} ${PINK_HOVER} ${HOVER_BRAND} transition-colors ${FOCUS}`}
         >
           {isSubmitting ? 'Salvando...' : 'Continuar'}
         </button>

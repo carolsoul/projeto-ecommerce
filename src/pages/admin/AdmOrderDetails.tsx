@@ -8,6 +8,7 @@ import { postJson, ApiError } from '../../lib/api';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { BORDER, BRAND, BRAND_BG, BRAND_BG_HOVER, BRAND_BORDER, CARD, DANGER, DISABLED, DIVIDE, FILL_SUBTLE, FOCUS, FOCUS_BRAND_BORDER, HOVER_PINK, MUTED, OUTLINE, OUTLINE_FOCUS, RING, SUBTLE } from '../../lib/theme';
 
 /**
  * Tela de trabalho do admin — /admin/orders/:orderId
@@ -140,12 +141,12 @@ export default function AdmOrderDetails() {
     // Daqui pra baixo, order existe
     if (phase !== 'ready' || order === null) {
         return (
-            <main className="bg-gray-50 px-4 py-8 md:px-8">
+            <main className={`${CARD} px-4 py-8 md:px-8`}>
                 <div className="mx-auto max-w-7xl">
                     <div className="flex flex-wrap items-center justify-between gap-6">
                         <div className="max-w-3xl">
-                            <h1 className="mb-4 text-2xl font-bold text-slate-900">Detalhes do pedido</h1>
-                            <p className="text-sm text-slate-600">
+                            <h1 className={`mb-4 text-2xl font-bold ${BRAND}`}>Detalhes do pedido</h1>
+                            <p className={`text-sm ${MUTED}`}>
                                 {phase === 'loading'
                                     ? 'Carregando...'
                                     : phase === 'missing'
@@ -162,17 +163,17 @@ export default function AdmOrderDetails() {
     }
 
     return (
-        <main className="bg-gray-50 px-4 py-8 md:px-8">
+        <main className={`${CARD} px-4 py-8 md:px-8`}>
             <div className="mx-auto max-w-7xl">
                 <div className="flex flex-wrap items-center justify-between gap-6">
                     <div className="max-w-3xl">
-                        <h1 className="mb-4 text-2xl font-bold text-slate-900">Detalhes do pedido</h1>
-                        <p className="text-sm text-slate-600">Veja e gerencie os detalhes deste pedido</p>
+                        <h1 className={`mb-4 text-2xl font-bold ${BRAND}`}>Detalhes do pedido</h1>
+                        <p className={`text-sm ${MUTED}`}>Veja e gerencie os detalhes deste pedido</p>
                     </div>
                 </div>
 
-                <div className='mt-8 rounded-lg border border-slate-300 bg-white p-8 text-slate-600'>
-                    <h3 className='text-sm font-semibold text-slate-900'>Pedido #{orderId}</h3>
+                <div className={`mt-8 rounded-lg border ${BORDER} ${CARD} p-8 ${MUTED}`}>
+                    <h3 className={`text-sm font-semibold ${BRAND}`}>Pedido #{orderId}</h3>
 
                     <p className='mt-2 text-sm flex items-center gap-4'>Status:  
                         <span className={`rounded-md px-2.5 py-1.5 text-xs font-medium ${paymentPresentation(order.status).className}`}>
@@ -187,18 +188,18 @@ export default function AdmOrderDetails() {
                     </p>
 
                     {paymentIssue && (
-                        <p className='mt-2 text-sm text-red-600'>Problema de pagamento: <span className='font-semibold'>{paymentIssue && 'Valor pago não cobriu o total, revise antes de despachar'}</span></p>
+                        <p className={`mt-2 text-sm ${DANGER}`}>Problema de pagamento: <span className='font-semibold'>{paymentIssue && 'Valor pago não cobriu o total, revise antes de despachar'}</span></p>
                     )}
 
-                    <p className='mt-3 text-sm text-slate-600'> Data do pedido: {' '}
+                    <p className={`mt-3 text-sm ${MUTED}`}> Data do pedido: {' '}
                         {order.createdAt
                             ? dateFormatter.format(order.createdAt.toDate())
                             : 'Desconhecida'}
                     </p>
                 </div>
 
-                <div className='mt-8 rounded-lg border border-slate-300 bg-white p-8 text-slate-600'>
-                    <h3 className='text-lg font-semibold text-slate-900'>Endereço de entrega</h3>
+                <div className={`mt-8 rounded-lg border ${BORDER} ${CARD} p-8 ${MUTED}`}>
+                    <h3 className={`text-lg font-semibold ${BRAND}`}>Endereço de entrega</h3>
                     <p className='mt-2 text-sm'>
                         {order.address.recipient}<br />
                         {order.address.street}, {order.address.number} {order.address.complement && `- ${order.address.complement}`}<br />
@@ -208,7 +209,7 @@ export default function AdmOrderDetails() {
                         Telefone: {order.address.phone}
                     </p>
 
-                    <button className='mt-4 px-3.5 py-2 text-slate-900 text-sm font-medium rounded-md bg-white border border-slate-300 hover:bg-slate-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500' onClick={() => {
+                    <button className={`mt-4 px-3.5 py-2 ${BRAND} text-sm font-medium rounded-md ${CARD} border ${BORDER} ${HOVER_PINK} cursor-pointer ${FOCUS}`} onClick={() => {
                         const addressText = `${order.address.recipient}\n${order.address.street}, ${order.address.number}${order.address.complement ? ` - ${order.address.complement}` : ''}\n${order.address.neighborhood}\n${order.address.city} - ${order.address.state}\nCEP: ${order.address.cep}\nTelefone: ${order.address.phone}`;
                         navigator.clipboard.writeText(addressText);
                     }}>
@@ -216,31 +217,31 @@ export default function AdmOrderDetails() {
                     </button>
                 </div>
 
-                <div className='mt-8 rounded-lg border border-slate-300 bg-white p-8 text-slate-600'>
-                    <h3 className='text-lg font-semibold text-slate-900'>Itens do Pedido</h3>
+                <div className={`mt-8 rounded-lg border ${BORDER} ${CARD} p-8 ${MUTED}`}>
+                    <h3 className={`text-lg font-semibold ${BRAND}`}>Itens do Pedido</h3>
                     <br />
-                    <table className='min-w-full rounded-lg border border-slate-200'>
-                        <thead className='bg-gray-100 whitespace-nowrap text-slate-900 text-left text-sm font-semibold'>
+                    <table className={`min-w-full rounded-lg border ${BORDER}`}>
+                        <thead className={`${CARD} whitespace-nowrap ${BRAND} text-left text-sm font-semibold overflow-hidden`}>
                             <tr>
                                 <th scope='col' className='px-4 py-3'>SKU</th>
                                 <th scope='col' className='px-4 py-3'>Produto</th>
-                                <th scope='col' className='px-4 py-3'>Quantidade</th>
+                                <th scope='col' className='px-4 py-3'>Quant.</th>
                             </tr>
                         </thead>
-                        <tbody className='whitespace-nowrap text-sm divide-y divide-slate-200'>
+                        <tbody className={`whitespace-wrap text-wrap text-sm divide-y ${DIVIDE}`}>
                             {order.items.map((item) => (
                                 <tr key={item.sku}>
-                                    <td className='px-4 py-3 text-slate-900 font-medium'>{item.sku}</td>
-                                    <td className='px-4 py-3 text-slate-900 font-medium'>{item.name}</td>
-                                    <td className='px-4 py-3 text-slate-900 font-medium'>{item.quantity}</td>
+                                    <td className={`px-4 py-3 ${BRAND} font-medium`}>{item.sku}</td>
+                                    <td className={`px-4 py-3 ${BRAND} font-medium`}>{item.name}</td>
+                                    <td className={`px-4 py-3 ${BRAND} font-medium`}>{item.quantity}</td>
                                 </tr>
                             ))}
                         </tbody>
                     </table>
                 </div>
                 
-                <div className='mt-8 rounded-lg border border-slate-300 bg-white p-8 text-slate-600'>
-                    <h3 className='text-lg font-semibold text-slate-900'>Valores</h3>
+                <div className={`mt-8 rounded-lg border ${BORDER} ${CARD} p-8 ${MUTED}`}>
+                    <h3 className={`text-lg font-semibold ${BRAND}`}>Valores</h3>
 
                     <p className='mt-2 text-sm'>Subtotal: {order.subtotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
                     <p className='mt-2 text-sm'>Frete: {order.shipping.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
@@ -250,16 +251,16 @@ export default function AdmOrderDetails() {
                     </p>
                 </div>
 
-                <div className='mt-8 rounded-lg border border-slate-300 bg-white p-8 text-slate-600'>
-                    <h3 className='text-lg font-semibold text-slate-900'>Pagamento</h3>
+                <div className={`mt-8 rounded-lg border ${BORDER} ${CARD} p-8 ${MUTED}`}>
+                    <h3 className={`text-lg font-semibold ${BRAND}`}>Pagamento</h3>
                     <p className='mt-2 text-sm'>Método: {order.paymentMethod}</p>
                     <p className='mt-2 text-sm'>ID do Pagamento: {order.mercadopagoPaymentId}</p>
                 </div>
 
-                <div className='mt-8 rounded-lg border border-slate-300 bg-white p-8 text-slate-600'>
-                    <h3 className='text-lg font-semibold text-slate-900'>Linha do Tempo</h3>
+                <div className={`mt-8 rounded-lg border ${BORDER} ${CARD} p-8 ${MUTED}`}>
+                    <h3 className={`text-lg font-semibold ${BRAND}`}>Linha do Tempo</h3>
                     {eventsFailed ? (
-                        <p className='mt-2 text-sm text-red-600'>
+                        <p className={`mt-2 text-sm ${DANGER}`}>
                             Não foi possível carregar a linha do tempo. Veja o console para o motivo.
                         </p>
                     ) : events.length === 0 ? (
@@ -269,16 +270,16 @@ export default function AdmOrderDetails() {
                             {events.map((event) => (
                                 <li key={event.id} className='flex items-center flex-col relative'>
                                     <div className='absolute top-0 left-full ml-4 w-max'>
-                                        <span className='block text-[10px] font-semibold text-slate-400 mb-0.5'>
+                                        <span className={`block text-[10px] font-semibold ${SUBTLE} mb-0.5`}>
                                             {event.occurredAt ? dateFormatter.format(event.occurredAt.toDate()) : 'Desconhecida'}
                                         </span>
-                                        <p className='text-sm font-semibold text-slate-900'>
+                                        <p className={`text-sm font-semibold ${BRAND}`}>
                                             {fulfillmentPresentation(event.status).label}
                                         </p>
-                                        <p className='mt-1 text-sm text-slate-600'>
+                                        <p className={`mt-1 text-sm ${MUTED}`}>
                                             {event.description || 'Sem descrição'}
                                         </p>
-                                        <p className='mt-1 text-sm text-slate-600'>
+                                        <p className={`mt-1 text-sm ${MUTED}`}>
                                             Localização: {event.location || 'Não informada'}
                                         </p>
                                         
@@ -300,8 +301,8 @@ export default function AdmOrderDetails() {
                     )}
                 </div>
 
-                <div className='mt-8 p-8 text-slate-600'>
-                    <h3 className='text-lg font-semibold text-slate-900'>Registrar Evento de Entrega</h3>
+                <div className={`mt-8 p-8 ${MUTED}`}>
+                    <h3 className={`text-lg font-semibold ${BRAND}`}>Registrar Evento de Entrega</h3>
                     <p className='mt-2 text-sm'>Aqui você pode registrar um novo evento de entrega para este pedido.</p>
 
                     <form onSubmit={handleSubmit(onSubmitSuccess)}>
@@ -309,12 +310,12 @@ export default function AdmOrderDetails() {
 
                             <div className='space-y-6 mt-6 grid grid-cols-1 md:grid-cols-2 gap-6'>
                                 <div>
-                                    <label htmlFor="fulfillment-status" className='block text-sm font-medium text-slate-700 inline-block mb-2'>
+                                    <label htmlFor="fulfillment-status" className={`block text-sm font-medium ${MUTED} inline-block mb-2`}>
                                         Novo status do pedido
                                     </label>
 
-                                    <div className='flex items-center w-min bg-white rounded-md outline-1 -outline-offset-1 outline-slate-300 focus-within:outline-2 focus-within:-outline-offset-2 focus-within:outline-blue-600 relative shrink-0 px-0.5 border-r border-slate-300'>
-                                        <select {...register('status')} aria-invalid={errors.status ? 'true' : undefined} aria-describedby={errors.status ? 'status-error' : undefined} id="status" className='appearance-none pl-3 pr-8 py-2 text-sm text-slate-900 bg-transparent outline-none cursor-pointer'>
+                                    <div className={`flex items-center w-min ${CARD} rounded-md outline-1 -outline-offset-1 ${OUTLINE} focus-within:outline-2 focus-within:-outline-offset-2 ${OUTLINE_FOCUS} relative shrink-0 px-0.5 border-r ${BORDER}`}>
+                                        <select {...register('status')} aria-invalid={errors.status ? 'true' : undefined} aria-describedby={errors.status ? 'status-error' : undefined} id="status" className={`appearance-none pl-3 pr-8 py-2 text-sm ${BRAND} bg-transparent outline-none cursor-pointer`}>
                                             <option value="">Escolha um status</option>
                                             {nextStatusesFor(order.fulfillment?.status).map((s) => (
                                                 <option key={s} value={s}>
@@ -322,11 +323,11 @@ export default function AdmOrderDetails() {
                                                 </option>
                                             ))}
                                         </select>
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="size-6 fill-slate-500 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" viewBox="0 0 24 24" aria-hidden="true">
+                                        <svg xmlns="http://www.w3.org/2000/svg" className={`size-6 ${FILL_SUBTLE} absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none`} viewBox="0 0 24 24" aria-hidden="true">
                                             <path d="M7 10l5 5 5-5z"/>
                                         </svg>
                                     </div>
-                                    <p id="status-error" className="text-red-500 text-sm" role="alert">
+                                    <p id="status-error" className={`${DANGER} text-sm`} role="alert">
                                         {errors.status?.message}
                                     </p>
                                     <br />
@@ -335,24 +336,24 @@ export default function AdmOrderDetails() {
 
                                     <input
                                     {...register('description')}
-                                    type="text" id="description" className='flex items-center w-min p-1 bg-white rounded-md outline-1 -outline-offset-1 outline-slate-300 focus-within:outline-2 focus-within:-outline-offset-2 focus-within:outline-blue-600 relative shrink-0 px-0.5 border-r border-slate-300' />
+                                    type="text" id="description" className={`flex items-center w-min p-1 ${CARD} rounded-md outline-1 -outline-offset-1 ${OUTLINE} focus-within:outline-2 focus-within:-outline-offset-2 ${OUTLINE_FOCUS} relative shrink-0 px-0.5 border-r ${BORDER}`} />
 
                                     <label htmlFor="location">Localização</label>
                                     <input 
                                     {...register('location')}
-                                    type="text" id="location" className='flex items-center w-min p-1 bg-white rounded-md outline-1 -outline-offset-1 outline-slate-300 focus-within:outline-2 focus-within:-outline-offset-2 focus-within:outline-blue-600 relative shrink-0 px-0.5 border-r border-slate-300'/>
+                                    type="text" id="location" className={`flex items-center w-min p-1 ${CARD} rounded-md outline-1 -outline-offset-1 ${OUTLINE} focus-within:outline-2 focus-within:-outline-offset-2 ${OUTLINE_FOCUS} relative shrink-0 px-0.5 border-r ${BORDER}`}/>
 
                                     {selectedStatus === 'shipped' && (
                                         <>
                                             <label htmlFor="tracking-code">Código de rastreio</label>
                                             <input 
                                             {...register('tracking-code')}
-                                            type="text" id="tracking-code" className='mt-2 block w-full rounded-md border border-slate-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50 sm:text-sm' aria-invalid={errors['tracking-code'] ? true : false} aria-describedby={errors['tracking-code']? `tracking-code-error` : undefined} />
+                                            type="text" id="tracking-code" className={`mt-2 block w-full rounded-md border ${BORDER} shadow-sm ${FOCUS_BRAND_BORDER} focus:ring ${RING} focus:ring-opacity-50 sm:text-sm`} aria-invalid={errors['tracking-code'] ? true : false} aria-describedby={errors['tracking-code']? `tracking-code-error` : undefined} />
 
                                             <label htmlFor="carrier">Transportadora</label>
                                             <input 
                                             {...register('carrier')}
-                                            type="text" id="carrier" className='mt-2 block w-full rounded-md border border-slate-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50 sm:text-sm' aria-invalid={errors['carrier'] ? true : false} aria-describedby={errors['carrier']? `carrier-error` : undefined} />
+                                            type="text" id="carrier" className={`mt-2 block w-full rounded-md border ${BORDER} shadow-sm ${FOCUS_BRAND_BORDER} focus:ring ${RING} focus:ring-opacity-50 sm:text-sm`} aria-invalid={errors['carrier'] ? true : false} aria-describedby={errors['carrier']? `carrier-error` : undefined} />
                                         </>
                                     )}
 
@@ -364,7 +365,7 @@ export default function AdmOrderDetails() {
                             <button
                             type="submit"
                             disabled={isSubmitting}
-                            className="w-full px-3.5 py-2 text-white text-sm font-semibold rounded-md cursor-pointer bg-blue-600 hover:bg-blue-700 border border-blue-600 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:border-slate-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                            className={`w-full px-3.5 py-2 text-white text-sm font-semibold rounded-md cursor-pointer ${BRAND_BG} ${BRAND_BG_HOVER} border ${BRAND_BORDER} disabled:cursor-not-allowed ${DISABLED} ${FOCUS}`}
                             >
                             {isSubmitting ? 'Salvando...' : 'Continuar'}
                             </button>

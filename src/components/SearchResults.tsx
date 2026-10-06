@@ -5,10 +5,9 @@ import { type Product } from '../types/products';
 import { collectCategories, matchesSearch } from '../utils/search';
 import CategoryFilter from './CategoryFilter';
 import ProductGrid from './ProductGrid';
+import { BORDER, BRAND, DANGER, MUTED } from '../lib/theme';
 
-// O Firestore não faz busca por texto parcial: não existe "contém". Por isso
-// carregamos um recorte do catálogo uma vez e filtramos em memória, o que
-// permite buscar no meio da palavra e ignorar acento. O teto abaixo é o limite
+// O Firestore não faz busca por texto parcial. Foi carregado um recorte do catálogo uma vez e filtrado em memória, o que permite buscar no meio da palavra e ignorar acento.
 const SEARCH_FETCH_LIMIT = 300;
 
 interface SearchResultsProps {
@@ -60,19 +59,19 @@ export default function SearchResults({ searchTerm }: SearchResultsProps) {
   return (
     <section className="mt-6 px-4 md:px-8" aria-labelledby="search-heading">
       <div className="max-w-7xl mx-auto">
-        <div className="border-b border-slate-300 pb-4 mb-8">
-          <h1 id="search-heading" className="text-2xl font-bold text-slate-900">
+        <div className={`border-b ${BORDER} pb-4 mb-8`}>
+          <h1 id="search-heading" className={`text-2xl font-bold ${BRAND}`}>
             Resultados para "{searchTerm}"
           </h1>
           {!loading && !error && (
-            <p className="text-base text-slate-600 mt-2">
+            <p className={`text-base ${MUTED} mt-2`}>
               {visible.length === 1 ? '1 produto encontrado' : `${visible.length} produtos encontrados`}
             </p>
           )}
         </div>
 
         {loading && <p className="text-center py-12">Buscando...</p>}
-        {!loading && error && <p className="text-center py-12 text-red-600">{error}</p>}
+        {!loading && error && <p className={`text-center py-12 ${DANGER}`}>{error}</p>}
 
         {!loading && !error && (
           <div className="lg:grid lg:grid-cols-[13rem_1fr] lg:gap-8 lg:items-start">
@@ -86,7 +85,7 @@ export default function SearchResults({ searchTerm }: SearchResultsProps) {
 
             <div>
               {visible.length === 0 ? (
-                <p className="text-center py-12 text-slate-600">
+                <p className={`text-center py-12 ${MUTED}`}>
                   Nenhum produto encontrado para "{searchTerm}". Tente outro termo.
                 </p>
               ) : (

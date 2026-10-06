@@ -10,15 +10,16 @@ import {
 } from '../lib/orderStatus';
 import { OrderHistoryItem } from '../components/OrderHistoryItem';
 import { Link } from 'react-router-dom';
+import { BORDER, BRAND, BRAND_BG, BRAND_BG_HOVER, BRAND_BORDER, CARD, CREAM, FOCUS, MUTED, ON_BRAND, PINK_HOVER, SUBTLE } from '../lib/theme';
 
 type Phase = 'loading' | 'ready' | 'unauthenticated' | 'missing' | 'denied' | 'empty';
 
 const ORDERS_SCAN_LIMIT = 10;
 
 const BUTTON_BASE =
-  'px-3.5 py-2 text-sm font-medium rounded-md border transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500';
-const BUTTON_IDLE = 'bg-white text-slate-900 border-slate-300 hover:bg-slate-100';
-const BUTTON_ACTIVE = 'bg-blue-600 text-white border-blue-600 hover:bg-blue-700';
+  `px-3.5 py-2 text-sm font-medium rounded-2xl border transition-colors cursor-pointer ${FOCUS}`;
+const BUTTON_IDLE = `${CARD} ${BRAND} ${BORDER} ${PINK_HOVER}`;
+const BUTTON_ACTIVE = `${BRAND_BG} ${ON_BRAND} ${BRAND_BORDER} ${BRAND_BG_HOVER}`;
 
 const dateFormatter = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short' });
 
@@ -78,9 +79,9 @@ export default function Orders() {
 
   if (phase === 'loading') {
     return (
-      <main className="bg-gray-50 px-4 py-8 md:px-8">
+      <main className={`${CARD} px-4 py-8 md:px-8`}>
         <div className="mx-auto max-w-7xl">
-          <p className="text-slate-600">Carregando pedidos...</p>
+          <p className={`${MUTED}`}>Carregando pedidos...</p>
         </div>
       </main>
     );
@@ -88,21 +89,21 @@ export default function Orders() {
 
   if (phase === 'unauthenticated') {
     return (
-      <main className="bg-gray-50 px-4 py-8 md:px-8">
+      <main className={`${CARD} px-4 py-8 md:px-8`}>
         <div className="mx-auto max-w-7xl">
-          <p className="text-slate-600">Faça login para ver seus pedidos.</p>
+          <p className={`${MUTED}`}>Faça login para ver seus pedidos.</p>
         </div>
       </main>
     );
   }
 
   return (
-    <main className="bg-gray-50 px-4 py-8 md:px-8">
+    <main className={`${CREAM} px-4 py-8 md:px-8`}>
       <div className="mx-auto max-w-7xl">
         <div className="flex flex-wrap items-center justify-between gap-6">
           <div className="max-w-3xl">
-            <h1 className="mb-4 text-2xl font-bold text-slate-900">Histórico de pedidos</h1>
-            <p className="text-sm text-slate-600">Veja e gerencie seus últimos pedidos</p>
+            <h1 className={`mb-4 text-2xl font-bold ${BRAND}`}>Histórico de pedidos</h1>
+            <p className={`text-sm ${MUTED}`}>Veja e gerencie seus últimos pedidos</p>
           </div>
         </div>
 
@@ -112,7 +113,7 @@ export default function Orders() {
             role="group"
             aria-label="Filtrar pedidos por status"
           >
-            <span className="text-sm font-medium text-slate-600">Filtrar por:</span>
+            <span className={`text-sm font-medium ${BRAND}`}>Filtrar por:</span>
 
             <button
               type="button"
@@ -138,7 +139,7 @@ export default function Orders() {
         </div>
 
         {orders.length === 0 ? (
-          <div className="mt-8 rounded-lg border border-dashed border-slate-300 bg-white p-8 text-center text-slate-600">
+          <div className={`mt-8 rounded-lg border border-dashed ${BORDER} ${CARD} p-8 text-center ${MUTED}`}>
             {phase === 'denied'
               ? 'Você não tem permissão para ver estes pedidos. Tente sair e entrar de novo.'
               : phase === 'missing'
@@ -146,7 +147,7 @@ export default function Orders() {
                 : 'Você ainda não possui pedidos.'}
           </div>
         ) : visibleOrders.length === 0 ? (
-          <div className="mt-8 rounded-lg border border-dashed border-slate-300 bg-white p-8 text-center text-slate-600">
+          <div className={`mt-8 rounded-lg border border-dashed ${BORDER} ${CARD} p-8 text-center ${MUTED}`}>
             Nenhum pedido com esse status.
           </div>
         ) : (
@@ -160,21 +161,21 @@ export default function Orders() {
                 return (
                   <li
                     key={order.id}
-                    className="overflow-hidden rounded-lg border border-slate-300 bg-white p-6"
+                    className={`overflow-hidden rounded-lg border ${BORDER} ${CARD} p-6`}
                   >
                     <div className="flex flex-wrap justify-between gap-6">
                       <div className="max-w-3xl">
                         <div className="flex items-center gap-4">
-                          <h3 className="text-sm font-semibold text-slate-900">
+                          <h3 className={`text-sm font-semibold ${BRAND}`}>
                             Pedido #{order.id}
                           </h3>
                           <span
-                            className={`rounded-md px-2.5 py-1.5 text-xs font-medium ${orderStatus.className}`}
+                            className={`rounded-2xl px-2.5 py-1.5 text-xs font-medium ${orderStatus.className}`}
                           >
                             {orderStatus.label}
                           </span>
                         </div>
-                        <p className="mt-3 text-sm text-slate-600">
+                        <p className={`mt-3 text-sm ${MUTED}`}>
                           Data do pedido:{' '}
                           {order.createdAt
                             ? dateFormatter.format(order.createdAt.toDate())
@@ -183,16 +184,16 @@ export default function Orders() {
                       </div>
 
                       <div className="text-right">
-                        <p className="text-lg font-semibold text-slate-900">
+                        <p className={`text-lg font-semibold ${BRAND}`}>
                           {order.total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                         </p>
-                        <p className="mt-3 text-sm text-slate-600">
+                        <p className={`mt-3 text-sm ${MUTED}`}>
                           {pieces} {pieces === 1 ? 'item' : 'itens'}
                         </p>
                       </div>
                     </div>
 
-                    <hr className="my-6 border-slate-300" />
+                    <hr className={`my-6 ${BORDER}`} />
 
                     <ul className="flex flex-wrap items-center gap-8">
                       {items.map((item) => (
@@ -206,7 +207,7 @@ export default function Orders() {
                           <Link
                             key={action}
                             to={action === "Ver  datalhes" ? `/orders/${order.id}` : `/orders/${order.id}/reorder`}
-                            className='flex items-center gap-2.5 px-3.5 py-2 text-slate-900 text-sm font-medium rounded-md bg-white border border-slate-300 hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500'
+                            className={`flex items-center gap-2.5 px-3.5 py-2 ${BRAND} text-sm font-medium rounded-md ${CARD} border ${BORDER} ${PINK_HOVER} ${FOCUS}`}
                           > 
                           {action}
                           </Link>
@@ -222,7 +223,7 @@ export default function Orders() {
             
 
             {orders.length === ORDERS_SCAN_LIMIT && (
-              <p className="mt-6 text-center text-sm text-slate-500">
+              <p className={`mt-6 text-center text-sm ${SUBTLE}`}>
                 Mostrando apenas os {ORDERS_SCAN_LIMIT} pedidos mais recentes.
               </p>
             )}

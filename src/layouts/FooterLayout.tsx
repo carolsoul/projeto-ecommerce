@@ -1,4 +1,5 @@
 import { Outlet } from 'react-router-dom'
+import { BORDER, BRAND_BG, CREAM, FOCUS, HOVER_ON_BRAND, MUTED, ON_BRAND } from '../lib/theme';
 
 const footerData = [
    {
@@ -47,22 +48,24 @@ const footerData = [
 
 export default function FooterLayout() {
     return (
-        <>
-        <Outlet />
-            <footer className="bg-white pt-16 pb-8 px-4 md:px-8">
+        <div className={`${CREAM} flex min-h-screen flex-col`}>
+            <div className="flex-1">
+                <Outlet />
+            </div>
+            <footer className={`${BRAND_BG} rounded-lg pt-16 pb-8 m-4 px-4 md:px-8`}>
                 <div className="max-w-7xl mx-auto">
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-y-12 gap-x-6 sm:gap-x-8">
                         {footerData.map((section) => (
                         <div key={section.title}>
-                        <h3 className="text-slate-900 font-semibold text-sm mb-6">
+                        <h3 className={`${ON_BRAND} font-semibold text-sm mb-6`}>
                         {section.title}
                         </h3>
-                        <ul className="space-y-4 text-slate-600 text-sm font-normal">
+                        <ul className={`space-y-4 ${MUTED} text-sm font-normal`}>
                             {section.links.map((link) => (
                                 <li key={link.name}>
                                     <a
                                     href={link.href}
-                                    className="hover:text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded transition-all"
+                                    className={`${HOVER_ON_BRAND} ${FOCUS} rounded transition-all`}
                                 >
                                     {link.name}
                                 </a>
@@ -73,15 +76,15 @@ export default function FooterLayout() {
                     ))}
                 </div>
 
-                <hr className="border-slate-300 my-8" />
+                <hr className={`${BORDER} my-8`} />
 
                 <div className="text-left">
-                    <p className="text-slate-600 text-sm">
+                    <p className={`${MUTED} text-sm`}>
                     © ReadymadeUI. All rights reserved.
                     </p>
                 </div>
             </div>
             </footer>
-        </>
+        </div>
     )
 }

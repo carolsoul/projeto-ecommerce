@@ -1,14 +1,13 @@
 import { type Product } from '../types/products';
-import StarRating from './StarRating';
 import { getDiscountPercentage } from '../utils/pricing';
 import { Link, useNavigate } from 'react-router-dom';
 
 import { useCart } from '../context/useCart';
 import { useAuth } from '../context/useAuth';
 import { useWishlist } from '../context/useWishlist';
+import { BRAND, BRAND_BG, CARD, FOCUS, HOVER_BRAND, MUTED, PINK, PINK_HOVER, RING } from '../lib/theme';
 
-const HEART_PATH =
-  'M45.5 4A18.53 18.53 0 0 0 32 9.86 18.5 18.5 0 0 0 0 22.5C0 40.92 29.71 59 31 59.71a2 2 0 0 0 2.06 0C34.29 59 64 40.92 64 22.5A18.52 18.52 0 0 0 45.5 4ZM32 55.64C26.83 52.34 4 36.92 4 22.5a14.5 14.5 0 0 1 26.36-8.33 2 2 0 0 0 3.27 0A14.5 14.5 0 0 1 60 22.5c0 14.41-22.83 29.83-28 33.14Z';
+const HEART_PATH = "M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z";
 
 interface ProductCardProps {
   product: Product;
@@ -24,12 +23,10 @@ export default function ProductCard({ product }: ProductCardProps) {
 
   const isFavorite = has(product.id);
   const productPath = `/produto/${product.id}`;
-
-  // Antes isto era um alert(): agora existe tela de login, então levamos a
-  // pessoa até lá e a trazemos de volta ao produto depois.
+  
   const handleAddToCart = () => {
     if (!user) {
-      navigate('/login', { state: { from: productPath } });
+      alert('Você precisa estar logado para adicionar ao carrinho.');
       return;
     }
     addItem(product);
@@ -42,67 +39,54 @@ export default function ProductCard({ product }: ProductCardProps) {
     }
     toggleItem(product);
   };
+  
   return (
-    <li className="flex flex-col border border-slate-300 shadow-sm rounded-md p-1.5 transition-all relative overflow-hidden">
+    <li className="flex flex-col p-1.5 transition-all relative overflow-hidden">
       {discount !== null && (
-        <span className="absolute top-2 left-2 z-10 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded">
+        <span className={`absolute top-2 left-2 z-10 ${BRAND_BG} text-white text-xs font-bold px-2 py-1 rounded`}>
           -{discount}%
         </span>
       )}
 
-      <Link to={`/produto/${product.id}`} className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded">
-        <div className="w-full bg-slate-50 rounded-sm overflow-hidden">
-          <img
-            src={product.imageUrl}
-            alt={product.name}
-            width={400}
-            height={400}
-            loading="lazy"
-            decoding="async"
-            className="w-full aspect-square object-cover object-top"
-          />
+      <button 
+        onClick={handleToggleFavorite} 
+        aria-pressed={isFavorite} 
+        className={`absolute top-2 right-2 size-8 inline-flex items-center justify-center rounded-full ${PINK} cursor-pointer transition-colors ${PINK_HOVER} ${BRAND}`} 
+      > 
+        <svg 
+          xmlns="http://w3.org"
+          className={`size-4 stroke-current transition-all duration-200 ${ isFavorite ? 'fill-current stroke-0 scale-110' : 'fill-none stroke-2' }`}
+          viewBox="0 0 24 24" 
+          aria-hidden="true"
+        > 
+          <path d={HEART_PATH} /> 
+        </svg> 
+      </button>
+
+      <Link to={`/produto/${product.id}`} className={`block ${FOCUS} rounded`}>
+        <div className={`w-full ${CARD} rounded-lg overflow-hidden`}>
+          <img src={product.imageUrl} alt={product.name} className="w-full aspect-square object-cover object-top" />
         </div>
+      </Link>
 
-        <div className="py-4 px-2 text-left">
-          <h3 className="text-sm sm:text-base font-semibold text-slate-900 line-clamp-2">{product.name}</h3>
+      <div className={`py-4 px-2 mt-2 rounded-lg text-left ${CARD}`}>
+          <h3 className={`text-sm sm:text-base font-semibold ${BRAND} line-clamp-2`}>{product.name}</h3>
 
-          <StarRating rating={product.rating} reviewCount={product.reviewCount} />
-
-          <div className="mt-4">
-            <p className="text-slate-900 font-semibold text-sm sm:text-base break-words">
+          <div className="mt-2">
+            <p className={`${BRAND} font-semibold text-sm sm:text-base break-words`}>
               {product.mrp != null && (
-                <span className="mr-1.5 text-slate-600 line-through">R${product.mrp.toFixed(2)}</span>
+                <span className={`mr-1.5 ${MUTED} line-through`}>R${product.mrp.toFixed(2)}</span>
               )}
               R${product.price.toFixed(2)}
             </p>
           </div>
-        </div>
-      </Link>
 
-      <div className="flex flex-col items-center mt-2">
-        <button type="button" onClick={handleAddToCart} className="w-full cursor-pointer text-sm px-3.5 py-2 font-semibold rounded-md bg-blue-600 hover:bg-blue-700 text-white border border-blue-600 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500" >
-          Adicionar ao carrinho
-        </button>
-        
-        <button
-          type="button"
-          onClick={handleToggleFavorite}
-          aria-pressed={isFavorite}
-          className={`w-full flex items-center justify-center gap-2 pb-1.5 pt-3 cursor-pointer text-sm font-medium whitespace-nowrap rounded-md transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
-            isFavorite ? 'text-red-600' : 'text-slate-900 hover:text-red-600'
-          }`}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className={`size-4 ${isFavorite ? 'fill-current' : 'fill-none stroke-current stroke-4'}`}
-            viewBox="0 0 66 66"
-            aria-hidden="true"
-          >
-            <path d={HEART_PATH} />
-          </svg>
-          <span>{isFavorite ? 'Salvo nos favoritos' : 'Adicionar aos favoritos'}</span>
-        </button>
-      </div>
+          <div className="flex flex-col items-center mt-2">
+            <button type="button" onClick={handleAddToCart} className={`w-full px-6 py-2 text-white text-sm font-semibold rounded-4xl cursor-pointer ${BRAND_BG} ${PINK_HOVER} ${HOVER_BRAND} transition-colors focus:outline-none focus-visible:ring-2 ${RING}`} >
+              Adicionar ao carrinho
+            </button>
+          </div>
+        </div>
     </li>
   );
 }

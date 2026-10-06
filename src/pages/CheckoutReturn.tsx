@@ -5,29 +5,18 @@ import { CheckCircle2, Clock, XCircle } from 'lucide-react';
 import { db } from '../lib/firebase';
 import { useAuth } from '../context/useAuth';
 import type { OrderStatus } from '../types/order';
+import { BORDER, BRAND, BRAND_BG, BRAND_BG_HOVER, CREAM, FOCUS, MUTED, PINK, RING_OFFSET } from '../lib/theme';
 
 /**
  * Tela de retorno do Mercado Pago (`back_urls`).
  *
- * A regra que organiza este arquivo inteiro: **a query string não prova nada**.
- * O Mercado Pago volta com `?status=approved&payment_id=...`, mas essa URL é
- * digitável por qualquer pessoa na barra de endereços. Quem diz se o pedido foi
- * pago é o documento em `orders`, escrito só pelo webhook através do Admin SDK.
- *
- * Por isso a tela assina o pedido com `onSnapshot` em vez de ler uma vez: o
- * redirect quase sempre chega ANTES da notificação do webhook, então o normal é
- * cair aqui em `awaiting_payment` e ver virar `paid` alguns segundos depois,
- * sozinho. Sem a assinatura ao vivo, a pessoa teria que recarregar a página.
- *
- * A query do MP entra só como pista visual para um caso que o Firestore não
- * distingue: pagamento recusado e pagamento abandonado deixam ambos o pedido em
- * `awaiting_payment` (webhook nenhum é disparado quando a pessoa desiste), e
- * sem essa pista a tela ficaria "confirmando..." para sempre.
+ * Quem diz se o pedido foi pago é o documento em `orders`, escrito pelo webhook através do Admin SDK.
+ * Por isso a tela assina o pedido com `onSnapshot` em vez de ler uma vez, o normal é cair em `awaiting_payment` e ver virar `paid` alguns segundos depois.
+ * A query do MP entra só como pista visual para um caso que o Firestore não distingue: pagamento recusado e pagamento abandonado.
  */
 
 type Phase = 'loading' | 'ready' | 'unauthenticated' | 'missing' | 'denied';
 
-/** Quanto esperamos o webhook antes de dizer que ele está demorando. */
 const SLOW_AFTER_MS = 20_000;
 
 export default function CheckoutReturn() {
@@ -40,8 +29,6 @@ export default function CheckoutReturn() {
   const [paymentIssue, setPaymentIssue] = useState<string | null>(null);
   const [slow, setSlow] = useState(false);
 
-  // Pista do MP, nunca fonte de verdade. `collection_status` é o nome antigo do
-  // mesmo campo e ainda aparece em parte dos redirects.
   const hint = params.get('status') ?? params.get('collection_status');
 
   useEffect(() => {
@@ -70,9 +57,6 @@ export default function CheckoutReturn() {
         setPaymentIssue(data.paymentIssue ?? null);
         setPhase('ready');
       },
-      // As regras do Firestore negam a leitura de pedido alheio. O erro chega
-      // aqui como permission-denied, e tratamos igual a "não encontrado" para
-      // não revelar que o id existe.
       (error) => {
         console.error('Não foi possível acompanhar o pedido:', error);
         setPhase(error.code === 'permission-denied' ? 'denied' : 'missing');
@@ -97,7 +81,7 @@ export default function CheckoutReturn() {
   if (phase === 'unauthenticated') {
     return (
       <Shell title="Entre para ver este pedido" tone="neutral">
-        <p className="text-sm text-slate-600">
+        <p className={`text-sm ${MUTED}`}>
           Seu pagamento não se perde — ele está ligado à sua conta. Faça login para acompanhar.
         </p>
         <Actions>
@@ -110,7 +94,7 @@ export default function CheckoutReturn() {
   if (phase === 'missing' || phase === 'denied') {
     return (
       <Shell title="Pedido não encontrado" tone="error" icon={<XCircle size={28} />}>
-        <p className="text-sm text-slate-600">
+        <p className={`text-sm ${MUTED}`}>
           Não encontramos este pedido na sua conta. Se você acabou de pagar, confira a lista de
           pedidos antes de tentar de novo.
         </p>
@@ -124,7 +108,7 @@ export default function CheckoutReturn() {
   if (status === 'paid') {
     return (
       <Shell title="Pagamento confirmado" tone="success" icon={<CheckCircle2 size={28} />}>
-        <p className="text-sm text-slate-600">
+        <p className={`text-sm ${MUTED}`}>
           Recebemos seu pagamento e o pedido já está em preparação.
         </p>
         <OrderNumber id={orderId} />
@@ -140,7 +124,7 @@ export default function CheckoutReturn() {
 
     return (
       <Shell title="Pagamento não aprovado" tone="error" icon={<XCircle size={28} />}>
-        <p className="text-sm text-slate-600">
+        <p className={`text-sm ${MUTED}`}>
           {underpaid
             ? 'O valor recebido não cobriu o total do pedido. Nossa equipe vai revisar e entrar em contato.'
             : 'O pagamento foi recusado. Nenhum valor foi cobrado — você pode tentar com outro meio de pagamento.'}
@@ -158,7 +142,7 @@ export default function CheckoutReturn() {
   if (status === 'cancelled') {
     return (
       <Shell title="Pagamento cancelado" tone="error" icon={<XCircle size={28} />}>
-        <p className="text-sm text-slate-600">
+        <p className={`text-sm ${MUTED}`}>
           Este pagamento foi cancelado ou estornado. Se você não reconhece a operação, fale com o
           suporte citando o número abaixo.
         </p>
@@ -169,16 +153,12 @@ export default function CheckoutReturn() {
       </Shell>
     );
   }
-
-  // Sobrou `pending` e `awaiting_payment`. É aqui que a pista do MP decide entre
-  // "está confirmando" e "você não chegou a pagar" — o Firestore vê a mesma
-  // coisa nos dois casos.
   const abandoned = hint === 'rejected' || hint === 'null' || hint === null;
 
   if (abandoned) {
     return (
       <Shell title="Pagamento não concluído" tone="neutral" icon={<Clock size={28} />}>
-        <p className="text-sm text-slate-600">
+        <p className={`text-sm ${MUTED}`}>
           Não recebemos a confirmação deste pagamento. O pedido continua guardado — tentar de novo
           não cria um pedido duplicado.
         </p>
@@ -192,14 +172,14 @@ export default function CheckoutReturn() {
 
   return (
     <Shell title="Confirmando seu pagamento..." tone="neutral" icon={<Clock size={28} />}>
-      <p className="text-sm text-slate-600">
+      <p className={`text-sm ${MUTED}`}>
         {slow
           ? 'A confirmação está demorando mais que o normal. Pode fechar esta página — o pedido é atualizado sozinho assim que o pagamento for processado, e você o encontra na sua lista de pedidos.'
           : 'Recebemos seu pagamento e estamos aguardando a confirmação do Mercado Pago. Esta tela se atualiza sozinha.'}
       </p>
       <OrderNumber id={orderId} />
       {!slow && (
-        <p className="mt-4 text-xs text-slate-500" role="status">
+        <p className={`mt-4 text-xs ${MUTED}`} role="status">
           Aguardando confirmação...
         </p>
       )}
@@ -212,7 +192,7 @@ export default function CheckoutReturn() {
 const TONE_CLASS = {
   success: 'border-emerald-200 bg-emerald-50 text-emerald-700',
   error: 'border-red-200 bg-red-50 text-red-700',
-  neutral: 'border-slate-200 bg-slate-50 text-slate-700',
+  neutral: `${BORDER} ${PINK} ${BRAND}`,
 } as const;
 
 function Shell({
@@ -227,7 +207,7 @@ function Shell({
   children?: React.ReactNode;
 }) {
   return (
-    <main className="px-4 md:px-8 mt-6">
+    <main className={`${CREAM} px-4 md:px-8 pt-6 pb-10`}>
       <h1 className="sr-only">Retorno do pagamento</h1>
 
       <div className="max-w-xl mx-auto">
@@ -248,7 +228,7 @@ function OrderNumber({ id }: { id: string | undefined }) {
   if (!id) return null;
 
   return (
-    <p className="mt-4 text-sm text-slate-700">
+    <p className={`mt-4 text-sm ${MUTED}`}>
       Número do pedido: <span className="font-mono font-semibold">{id}</span>
     </p>
   );
@@ -262,7 +242,7 @@ function Primary({ to, children }: { to: string; children: React.ReactNode }) {
   return (
     <Link
       to={to}
-      className="px-3.5 py-2 text-white text-sm font-semibold rounded-md bg-blue-600 hover:bg-blue-700 border border-blue-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+      className={`px-3.5 py-2 text-white text-sm font-semibold rounded-full ${BRAND_BG} ${BRAND_BG_HOVER} ${FOCUS} focus-visible:ring-offset-2 ${RING_OFFSET}`}
     >
       {children}
     </Link>

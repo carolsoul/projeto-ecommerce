@@ -1,3 +1,15 @@
+import {
+  BORDER,
+  BRAND,
+  BRAND_BG,
+  BRAND_BG_HOVER,
+  BRAND_BORDER,
+  CARD,
+  HOVER_PINK,
+  ON_BRAND,
+  RING,
+} from '../lib/theme';
+
 interface CategoryFilterProps {
   categories: string[];
   selected: string | null;
@@ -5,35 +17,26 @@ interface CategoryFilterProps {
 }
 
 const BASE_BUTTON =
-  'px-4 py-1.5 text-sm font-medium rounded-full border transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500';
+  `px-4 py-1.5 text-sm font-medium rounded-full border transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 ${RING}`;
 
 function buttonClass(isActive: boolean) {
-  if (isActive) return `${BASE_BUTTON} bg-blue-600 text-white border-blue-600`;
-  return `${BASE_BUTTON} bg-white text-slate-700 border-slate-300 hover:bg-slate-50`;
+  if (isActive) return `${BASE_BUTTON} ${BRAND_BG} ${ON_BRAND} ${BRAND_BORDER} ${BRAND_BG_HOVER}`;
+  return `${BASE_BUTTON} ${CARD} ${BRAND} ${BORDER} ${HOVER_PINK}`;
 }
 
 /**
- * Filtro avançado por categoria, exibido apenas nos resultados de busca.
- *
- * O deslizamento muda de eixo conforme a tela: no desktop é uma coluna que
- * rola na vertical ao lado dos resultados; no mobile, uma faixa que rola na
- * horizontal acima deles. Daí o `flex-row` virar `lg:flex-col` e o
- * `overflow-x-auto` virar `lg:overflow-y-auto`.
+ * Filtro avançado por categoria, no desktop rola na vertical, no mobile rola na
+ * horizontal. `flex-row` vira `lg:flex-col` e o `overflow-x-auto` vira `lg:overflow-y-auto`.
  */
 export default function CategoryFilter({ categories, selected, onSelect }: CategoryFilterProps) {
-  // Com uma categoria só não há o que filtrar — o filtro seria decorativo.
   if (categories.length < 2) return null;
 
   return (
     <div className="mb-6 lg:mb-0">
-      <h2 className="text-sm font-semibold text-slate-900 mb-3">Filtrar por categoria</h2>
+      <h2 className={`text-sm font-semibold ${BRAND} mb-3`}>Filtrar por categoria</h2>
 
       <ul
-        className="
-          flex flex-row gap-2 overflow-x-auto whitespace-nowrap pb-2
-          lg:flex-col lg:flex-nowrap lg:gap-2 lg:overflow-x-visible
-          lg:overflow-y-auto lg:max-h-[70vh] lg:whitespace-normal lg:pb-0 lg:pr-2
-        "
+        className={`flex flex-row gap-2 overflow-x-auto whitespace-nowrap pb-2 lg:flex-col lg:flex-nowrap lg:gap-2 lg:overflow-x-visible lg:overflow-y-auto lg:max-h-[70vh] lg:whitespace-normal lg:pb-0 lg:pr-2`}
       >
         <li className="shrink-0">
           <button

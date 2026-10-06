@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { type Product } from '../types/products';
 import StarRating from './StarRating';
 import { getDiscountPercentage } from '../utils/pricing';
@@ -6,9 +6,9 @@ import { getDiscountPercentage } from '../utils/pricing';
 import { useCart } from '../context/useCart';
 import { useAuth } from '../context/useAuth';
 import { useWishlist } from '../context/useWishlist';
+import { BRAND, BRAND_BG, CARD, CREAM, HOVER_BRAND, ON_BRAND, PINK, PINK_HOVER, RING } from '../lib/theme';
 
-const HEART_PATH =
-  'M45.5 4A18.53 18.53 0 0 0 32 9.86 18.5 18.5 0 0 0 0 22.5C0 40.92 29.71 59 31 59.71a2 2 0 0 0 2.06 0C34.29 59 64 40.92 64 22.5A18.52 18.52 0 0 0 45.5 4ZM32 55.64C26.83 52.34 4 36.92 4 22.5a14.5 14.5 0 0 1 26.36-8.33 2 2 0 0 0 3.27 0A14.5 14.5 0 0 1 60 22.5c0 14.41-22.83 29.83-28 33.14Z';
+const HEART_PATH = "M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z";
 
 interface ProductViewProps {
   product: Product;
@@ -42,20 +42,24 @@ export default function ProductView({ product }: ProductViewProps) {
   };
 
   return (
-    <section className="px-4 md:px-8 mt-6">
+    <section className={`px-4 md:px-8 ${CREAM}`}>
       <div className="max-w-xl mx-auto lg:max-w-6xl">
-        <div className="grid items-start gap-8 lg:grid-cols-2 sm:gap-12 lg:gap-12">
+
+        <Link to={`/`} 
+        className={`${BRAND} font-semibold text-lg`}>
+          Voltar
+        </Link>
+
+        <div className="grid items-start gap-6 lg:grid-cols-2 sm:gap-2 lg:gap-2 w-full pb-8">
 
           {/* IMAGEM (única, sem galeria por enquanto) */}
-          <div className="w-full lg:sticky lg:top-0 relative">
+          <div className="w-full lg:sticky lg:top-1 relative">
             {discount !== null && (
-              <span className="absolute top-2 left-2 z-10 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded">
+              <span className={`absolute top-2 left-2 z-10 ${BRAND_BG} text-white text-sm font-bold px-3 py-2 rounded`}>
                 -{discount}%
               </span>
             )}
-            <div className="bg-gray-100 rounded overflow-hidden">
-              {/* Imagem principal da página de produto: é o LCP aqui, então
-                  não leva lazy. */}
+            <div className={`${CARD} rounded-2xl overflow-hidden`}>
               <img
                 src={product.imageUrl}
                 alt={product.name}
@@ -63,69 +67,101 @@ export default function ProductView({ product }: ProductViewProps) {
                 height={600}
                 fetchPriority="high"
                 decoding="async"
-                className="w-full object-cover"
+                className="w-full object-cover max-h-[500px]"
               />
             </div>
           </div>
 
           {/* INFO DO PRODUTO */}
-          <div className="w-full" id="product-main">
+          <div className={`w-full ${CARD} rounded-2xl px-6 py-4`} id="product-main">
 
             <div>
-              <h1 className="text-xl font-bold text-slate-900 md:text-2xl">{product.name}</h1>
-
-              <div className="flex items-center flex-wrap gap-4 mt-6">
-                <p className="text-slate-900 font-bold text-2xl md:text-3xl">
-                  <span className="sr-only">Preço:</span>R${product.price.toFixed(2)}
-                </p>
-                {product.mrp != null && (
-                  <p className="text-slate-600 text-lg">
-                    <s aria-label={`Preço original: $${product.mrp.toFixed(2)}`}>
-                      <span aria-hidden="true">R${product.mrp.toFixed(2)}</span>
-                    </s>
-                  </p>
-                )}
+              <div className='mb-3'>
+                <StarRating rating={product.rating} reviewCount={product.reviewCount} />
               </div>
 
-              <div className="mt-4">
-                <StarRating rating={product.rating} reviewCount={product.reviewCount} />
+              <div className='flex flex-row items-start justify-between content-between'>
+                <h1 className={`text-4xl font-bold ${BRAND}`}>{product.name}</h1>
+
+                <div className="flex flex-col flex-wrap">
+                  <p className={`${BRAND} font-bold text-3xl md:text-4xl`}>
+                    <span className="sr-only">Preço:</span>R${product.price.toFixed(2)}
+                  </p>
+                  {product.mrp != null && (
+                    <p className={`${BRAND} text-lg`}>
+                      <s aria-label={`Preço original: $${product.mrp.toFixed(2)}`}>
+                        <span aria-hidden="true">R${product.mrp.toFixed(2)}</span>
+                      </s>
+                    </p>
+                  )}
+                </div>
+              </div>
+              <div className='py-5'>
+                  <p className={`${BRAND} font-bold text-2xl md:text-2xl`}>Descrição</p>
+                  <p className={`${BRAND} text-lg`}>
+                    Descrição do produto aqui
+                  </p>
+              </div>
+              <div className='py-5'>
+                  <p className={`${BRAND} font-bold text-2xl md:text-2xl`}>Características</p>
+                  <p className={`${BRAND} text-lg`}>
+                    Características do produto aqui
+                  </p>
               </div>
             </div>
 
-            <hr className="my-6 border-slate-300" />
-
-            <div className="mt-6 flex flex-wrap gap-4">
-              <button
-                type="button"
-                onClick={handleToggleFavorite}
-                aria-pressed={isFavorite}
-                className={`w-[45%] px-4 py-2.5 text-sm font-semibold rounded-md cursor-pointer bg-white border transition-colors hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
-                  isFavorite ? 'text-red-600 border-red-300' : 'text-slate-900 border-slate-300'
-                }`}
-              >
-                <span className="inline-flex items-center gap-2">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className={`size-4 ${isFavorite ? 'fill-current' : 'fill-none stroke-current stroke-4'}`}
-                    viewBox="0 0 66 66"
-                    aria-hidden="true"
-                  >
-                    <path d={HEART_PATH} />
-                  </svg>
-                  {isFavorite ? 'Salvo nos favoritos' : 'Adicionar aos favoritos'}
-                </span>
-              </button>
+            <div className="mt-6 flex flex-wrap gap-4"> 
               <button
                 type="button" onClick={handleAddToCart}
-                className="w-[45%] px-4 py-2.5 text-white text-sm font-semibold rounded-md cursor-pointer bg-blue-600 hover:bg-blue-700 border border-blue-600 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                className={`px-6 py-2 text-white text-sm font-semibold rounded-4xl cursor-pointer ${BRAND_BG} ${PINK_HOVER} ${HOVER_BRAND} transition-colors focus:outline-none focus-visible:ring-2 ${RING}`}
               >
                 Adicionar ao carrinho
+              </button>
+
+              <button 
+                onClick={handleToggleFavorite} 
+                aria-pressed={isFavorite} 
+                className={`size-10 inline-flex items-center justify-center rounded-full ${PINK} cursor-pointer transition-colors ${PINK_HOVER} ${BRAND}`} 
+              > 
+                <svg 
+                  xmlns="http://w3.org"
+                  className={`size-4 stroke-current transition-all duration-200 ${ isFavorite ? 'fill-current stroke-0 scale-110' : 'fill-none stroke-2' }`}
+                  viewBox="0 0 24 24" 
+                  aria-hidden="true"
+                > 
+                  <path d={HEART_PATH} /> 
+                </svg> 
               </button>
             </div>
 
             {/* add localização de entrega, accordion de detalhes, reviews depois*/}
           </div>
         </div>
+        <div className={`flex ${BRAND_BG} my-8 py-8 px-6 rounded-2xl`}>
+              
+              <div className="flex flex-wrap gap-4 mb-6">
+
+                <h2 className={`text-4xl font-bold ${ON_BRAND} pb-6 pt-3`}>Gift Card da The Bush.</h2>
+
+                <p className={`${ON_BRAND}`}>Dê de presente estilo e a atmosfera da The Bush! Designs únicos que vão decorar qualquer interior e trazer alegria. Uma escolha ideal para aqueles que apreciam estética e qualidade</p>
+
+                <button className={`my-8 px-6 py-2 ${BRAND} text-sm font-semibold rounded-4xl cursor-pointer ${PINK} ${PINK_HOVER} ${HOVER_BRAND} transition-colors focus:outline-none focus-visible:ring-2 ${RING}`}>
+                Adicionar Gift Card
+              </button>
+              </div>
+
+              <img src="https://plus.unsplash.com/premium_photo-1742833661693-d54d72a51b1a?q=80&w=997&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Gift-card-the-bush" className='rounded-3xl w-full overflow-hidden object-cover' />
+            </div>
+
+            <div className="">
+              <p className={`text-4xl font-bold ${BRAND}`}>Você pode gostar</p>
+              {/*Produtos Populares com slide horizontal */}
+            </div>
+
+            <div className="">
+              <p className={`text-4xl font-bold ${BRAND}`}>Avaliações</p>
+              {/*Avaliações do produto */}
+            </div>
       </div>
     </section>
   );

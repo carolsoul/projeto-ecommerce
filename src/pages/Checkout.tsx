@@ -9,9 +9,11 @@ import { AddressForm } from '../components/AddressForm';
 import { OrderSummaryItem } from '../components/OrderSummaryItem';
 import type { AddressFormData } from '../schemas/addressSchema';
 import type { OrderTotals } from '../types/order';
+import { BORDER, BRAND, BRAND_BG, BRAND_BG_HOVER, BRAND_BORDER, BRAND_HOVER, CARD, CREAM, DANGER, DISABLED, DISABLED_BORDER, FOCUS, MUTED, OUTLINE_FOCUS, RING_GAP } from '../lib/theme';
+
 
 const RADIO_CLASS =
-  'w-[18px] h-[18px] appearance-none rounded-full border border-slate-300 bg-white focus:outline-blue-500 checked:ring-2 checked:ring-inset checked:ring-white checked:bg-blue-600 cursor-pointer';
+  `w-[18px] h-[18px] appearance-none rounded-full border ${BORDER} ${CARD} ${OUTLINE_FOCUS} checked:ring-2 checked:ring-inset checked:${RING_GAP} checked:${BRAND_BG} cursor-pointer`;
 
 type PaymentMethod = 'card' | 'pix';
 
@@ -22,7 +24,8 @@ interface SavedAddress {
 
 export default function Checkout() {
   const { user, loading: authLoading } = useAuth();
-  const { items, loading, removeItem, updateQuantity } = useCart();
+  // Sem `removeItem` nem `updateQuantity`: o resumo desta etapa é só leitura.
+  const { items, loading } = useCart();
 
   const [address, setAddress] = useState<SavedAddress | null>(null);
   const [totals, setTotals] = useState<OrderTotals | null>(null);
@@ -32,8 +35,7 @@ export default function Checkout() {
   const [error, setError] = useState<string | null>(null);
   const idempotencyKey = useRef<string | null>(null);
 
-  // Prévia apenas visual, enquanto não há endereço. Frete, taxa e total só
-  // existem depois que o servidor calcula — não são reproduzidos aqui.
+  // Prévia apenas visual, enquanto não há endereço.
   const previewSubtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
   const handleAddressSubmit = async (data: AddressFormData) => {
@@ -79,8 +81,7 @@ export default function Checkout() {
     setError(null);
     setBusy(true);
 
-    // A chave fica no ref e sobrevive a uma tentativa que falhou: repetir o
-    // clique reaproveita o mesmo pedido em vez de criar um segundo.
+    // A chave fica no ref e sobrevive a uma tentativa que falhou: repetir o clique reaproveita o mesmo pedido em vez de criar um segundo.
     if (idempotencyKey.current === null) {
       idempotencyKey.current = crypto.randomUUID();
     }
@@ -98,8 +99,7 @@ export default function Checkout() {
       });
       createdId = order.orderId;
 
-      // 2. Troca o pedido pelo link do checkout do Mercado Pago. Nenhum valor
-      //    sobe nesta chamada: o servidor lê o total do próprio pedido.
+      // 2. Troca o pedido pelo link do checkout do Mercado Pago. O servidor lê o total do próprio pedido.
       const preference = await postJson<{ url: string }>('/api/checkout/create-preference', {
         orderId: order.orderId,
       });
@@ -109,16 +109,13 @@ export default function Checkout() {
     }
 
     if (checkoutUrl !== null) {
-      // A partir daqui o comprador sai do nosso site. Os dados do cartão são
-      // digitados no domínio do Mercado Pago e não passam por aqui.
+      // Comprador sai do site. Os dados do cartão são digitados no domínio do Mercado Pago.
       window.location.href = checkoutUrl;
       return;
     }
 
     setBusy(false);
 
-    // O pedido pode ter sido criado antes da falha. Mostrar o número dá à
-    // pessoa algo concreto para citar no suporte.
     if (createdId !== null) setOrderId(createdId);
 
     const message =
@@ -136,23 +133,23 @@ export default function Checkout() {
   }
 
   return (
-    <main>
+    <main className={`${CREAM} pb-10`}>
       <h1 className="sr-only">Finalizar compra</h1>
 
-      <div className="px-4 md:px-8 mt-6">
+      <div className="px-4 md:px-8 pt-6">
         <div className="max-w-xl mx-auto lg:max-w-7xl">
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-16">
             {/* ── Entrega e pagamento ── */}
             <section className="w-full h-max">
               {orderId !== null ? (
-                <div className="rounded-md border border-amber-200 bg-amber-50 p-6">
-                  <h2 className="text-xl text-slate-900 font-semibold mb-2">
+                <div className={`rounded-md border ${BORDER} ${CARD} p-6`}>
+                  <h2 className={`text-xl ${BRAND} font-semibold mb-2`}>
                     Pedido criado, pagamento não iniciado
                   </h2>
-                  <p className="text-sm text-slate-700">
+                  <p className={`text-sm ${MUTED}`}>
                     Número do pedido: <span className="font-mono font-semibold">{orderId}</span>
                   </p>
-                  <p className="text-sm text-slate-600 mt-4">
+                  <p className={`text-sm ${MUTED} mt-4`}>
                     O pedido está guardado, mas não conseguimos abrir a tela de pagamento. Tente de
                     novo — nenhum pedido duplicado será criado.
                   </p>
@@ -163,7 +160,7 @@ export default function Checkout() {
                       setOrderId(null);
                       setError(null);
                     }}
-                    className="mt-6 px-3.5 py-2 text-white text-sm font-semibold rounded-md cursor-pointer bg-blue-600 hover:bg-blue-700 border border-blue-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                    className={`mt-6 px-3.5 py-2 text-white text-sm font-semibold rounded-md cursor-pointer ${BRAND_BG} ${BRAND_BG_HOVER} ${FOCUS}`}
                   >
                     Tentar pagar novamente
                   </button>
@@ -171,21 +168,21 @@ export default function Checkout() {
               ) : address === null ? (
                 <>
                   <AddressForm onSubmitSuccess={handleAddressSubmit} />
-                  {busy && <p className="mt-4 text-sm text-slate-600">Calculando o pedido...</p>}
+                  {busy && <p className={`mt-4 text-sm ${MUTED}`}>Calculando o pedido...</p>}
                 </>
               ) : (
                 <>
-                  <div className="flex items-start gap-4 pb-8 border-b border-slate-300">
+                  <div className={`flex items-start gap-4 pb-8 border-b ${BORDER}`}>
                     <div className="flex-1">
-                      <h2 className="text-xl text-slate-900 font-semibold mb-4">Entregar em</h2>
-                      <p className="text-sm text-slate-700">
+                      <h2 className={`text-xl ${BRAND} font-semibold mb-4`}>Entregar em</h2>
+                      <p className={`text-sm ${MUTED}`}>
                         {address.data.recipient} — {address.data.phone}
                       </p>
-                      <p className="text-sm text-slate-700">
+                      <p className={`text-sm ${MUTED}`}>
                         {address.data.street}, {address.data.number}
                         {address.data.complement ? ` — ${address.data.complement}` : ''}
                       </p>
-                      <p className="text-sm text-slate-700">
+                      <p className={`text-sm ${MUTED}`}>
                         {address.data.neighborhood}, {address.data.city}/{address.data.state} —{' '}
                         {address.data.cep}
                       </p>
@@ -197,14 +194,14 @@ export default function Checkout() {
                         setAddress(null);
                         setTotals(null);
                       }}
-                      className="text-sm font-medium text-blue-600 hover:text-blue-700 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded"
+                      className={`text-sm font-medium ${BRAND} ${BRAND_HOVER} ${FOCUS} rounded`}
                     >
                       Alterar
                     </button>
                   </div>
 
                   <fieldset className="mt-8">
-                    <legend className="text-xl text-slate-900 font-semibold mb-6">
+                    <legend className={`text-xl ${BRAND} font-semibold mb-6`}>
                       Forma de pagamento
                     </legend>
 
@@ -221,7 +218,7 @@ export default function Checkout() {
                         />
                         <label
                           htmlFor="payment-card"
-                          className="ml-4 flex items-center gap-2 cursor-pointer text-sm font-medium text-slate-900"
+                          className={`ml-4 flex items-center gap-2 cursor-pointer text-sm font-medium ${BRAND}`}
                         >
                           <CreditCard size={20} />
                           Cartão de crédito
@@ -240,7 +237,7 @@ export default function Checkout() {
                         />
                         <label
                           htmlFor="payment-pix"
-                          className="ml-4 flex items-center gap-2 cursor-pointer text-sm font-medium text-slate-900"
+                          className={`ml-4 flex items-center gap-2 cursor-pointer text-sm font-medium ${BRAND}`}
                         >
                           <QrCode size={20} />
                           Pix
@@ -248,12 +245,8 @@ export default function Checkout() {
                       </div>
                     </div>
 
-                    {/* Os dados do cartão NÃO são coletados aqui: receber número
-                        de cartão no próprio formulário coloca o projeto dentro
-                        do escopo de PCI-DSS. O provedor entrega campos
-                        hospedados, e o servidor só vê um token. */}
-                    <div className="mt-8 rounded-md bg-slate-50 border border-slate-200 p-4">
-                      <p className="text-sm text-slate-700">
+                    <div className={`mt-8 rounded-md ${CARD} border ${BORDER} p-4`}>
+                      <p className={`text-sm ${MUTED}`}>
                         {paymentMethod === 'card'
                           ? 'Os dados do cartão serão preenchidos na tela segura do provedor de pagamento.'
                           : 'O código Pix será gerado após a confirmação do pedido.'}
@@ -266,7 +259,7 @@ export default function Checkout() {
                       type="button"
                       onClick={handleCreateOrder}
                       disabled={busy || totals === null || items.length === 0}
-                      className="w-full px-3.5 py-2 text-white text-sm font-semibold rounded-md cursor-pointer bg-blue-600 hover:bg-blue-700 border border-blue-600 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:border-slate-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                      className={`w-full px-3.5 py-2 text-white text-sm font-semibold rounded-md cursor-pointer ${BRAND_BG} ${BRAND_BG_HOVER} border ${BRAND_BORDER} disabled:cursor-not-allowed ${DISABLED} ${DISABLED_BORDER} ${FOCUS}`}
                     >
                       {busy
                         ? 'Criando pedido...'
@@ -277,60 +270,56 @@ export default function Checkout() {
               )}
 
               {error && (
-                <p role="alert" className="mt-4 text-sm text-red-600">
+                <p role="alert" className={`mt-4 text-sm ${DANGER}`}>
                   {error}
                 </p>
               )}
             </section>
 
             {/* ── Resumo do pedido ── */}
-            <section className="bg-gray-100 -order-1 p-6 md:p-8 lg:order-none">
+            <section className={`${CARD} -order-1 p-4 md:p-3 lg:order-none rounded-2xl`}>
               <h2 className="sr-only">Resumo do pedido</h2>
 
               {items.length === 0 ? (
-                <p className="text-sm text-slate-600 text-center py-8">Seu carrinho está vazio.</p>
+                <p className={`text-sm ${MUTED} text-center py-8`}>Seu carrinho está vazio.</p>
               ) : (
                 <>
                   <div className="space-y-6">
                     {items.map((item, index) => (
                       <div key={item.sku} className="space-y-6">
-                        <OrderSummaryItem
-                          item={item}
-                          onRemove={removeItem}
-                          onQuantityChange={updateQuantity}
-                        />
-                        {index < items.length - 1 && <hr className="border-slate-300" />}
+                        <OrderSummaryItem item={item} />
+                        {index < items.length - 1 && <hr className={`${BORDER}`} />}
                       </div>
                     ))}
                   </div>
 
-                  <hr className="border-slate-300 my-6" />
+                  <hr className={`${BORDER} my-6`} />
                 </>
               )}
 
-              <ul className="text-slate-500 font-medium space-y-4">
+              <ul className={`${MUTED} font-medium space-y-4`}>
                 <li className="flex flex-wrap gap-4 text-sm">
                   Subtotal
-                  <span className="ml-auto font-semibold text-slate-900">
+                  <span className={`ml-auto font-semibold ${BRAND}`}>
                     R${(totals?.subtotal ?? previewSubtotal).toFixed(2)}
                   </span>
                 </li>
                 <li className="flex flex-wrap gap-4 text-sm">
                   Entrega
-                  <span className="ml-auto font-semibold text-slate-900">
+                  <span className={`ml-auto font-semibold ${BRAND}`}>
                     {totals === null ? 'a calcular' : `R$${totals.shipping.toFixed(2)}`}
                   </span>
                 </li>
                 <li className="flex flex-wrap gap-4 text-sm">
-                  Taxa (3%)
-                  <span className="ml-auto font-semibold text-slate-900">
+                  Taxa
+                  <span className={`ml-auto font-semibold ${BRAND}`}>
                     {totals === null ? 'a calcular' : `R$${totals.tax.toFixed(2)}`}
                   </span>
                 </li>
                 <li>
-                  <hr className="border-slate-300" />
+                  <hr className={`${BORDER}`} />
                 </li>
-                <li className="flex flex-wrap gap-4 text-sm font-semibold text-slate-900">
+                <li className={`flex flex-wrap gap-4 text-sm font-semibold ${BRAND}`}>
                   Total
                   <span className="ml-auto">
                     {totals === null ? '—' : `R$${totals.total.toFixed(2)}`}
@@ -339,7 +328,7 @@ export default function Checkout() {
               </ul>
 
               {totals === null && items.length > 0 && (
-                <p className="mt-4 text-xs text-slate-500">
+                <p className={`mt-4 text-xs ${MUTED}`}>
                   O frete depende do endereço de entrega. Os valores finais são calculados no
                   servidor.
                 </p>

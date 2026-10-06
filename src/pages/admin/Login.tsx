@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../../lib/firebase';
+import { BRAND_BG, DANGER } from '../../lib/theme';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -15,7 +16,7 @@ export default function Login() {
 
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      navigate('/admin/products/upload');
+      navigate('/admin/dashboard');
     } catch {
       setError('Email ou senha inválidos.');
     }
@@ -41,8 +42,8 @@ export default function Login() {
           className="border rounded px-3 py-2"
           required
         />
-        {error && <p className="text-red-600 text-sm">{error}</p>}
-        <button type="submit" className="bg-blue-600 text-white rounded py-2 font-medium">
+        {error && <p className={`${DANGER} text-sm`}>{error}</p>}
+        <button type="submit" className={`${BRAND_BG} text-white rounded py-2 font-medium`}>
           Entrar
         </button>
       </form>

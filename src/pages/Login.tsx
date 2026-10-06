@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 import { authErrorMessage } from '../utils/authErrors';
+import { BORDER, BRAND, BRAND_BG, BRAND_BG_HOVER, BRAND_HOVER, DANGER, DISABLED_PINK, FOCUS, MUTED } from '../lib/theme';
 
 interface LoginRedirectState {
   from?: string;
@@ -16,7 +17,6 @@ export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Quem chegou aqui por tentar favoritar ou comprar volta para onde estava.
   const state = location.state as LoginRedirectState | null;
   const redirectTo = state?.from ?? '/';
 
@@ -45,11 +45,11 @@ export default function Login() {
 
   return (
     <main className="max-w-sm mx-auto mt-16 mb-20 px-4">
-      <h1 className="text-2xl font-bold text-slate-900 mb-1">Entrar</h1>
-      <p className="text-sm text-slate-600 mb-6">Bem-vinda de volta.</p>
+      <h1 className={`text-2xl font-bold ${BRAND} mb-1`}>Entrar</h1>
+      <p className={`text-sm ${MUTED} mb-6`}>Bem-vinda de volta.</p>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-        <label className="text-sm font-medium text-slate-900" htmlFor="login-email">
+        <label className={`text-sm font-medium ${BRAND}`} htmlFor="login-email">
           E-mail
         </label>
         <input
@@ -58,11 +58,11 @@ export default function Login() {
           autoComplete="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="border border-slate-300 rounded-md px-3 py-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+          className={`border ${BORDER} rounded-md px-3 py-2 ${FOCUS}`}
           required
         />
 
-        <label className="text-sm font-medium text-slate-900" htmlFor="login-password">
+        <label className={`text-sm font-medium ${BRAND}`} htmlFor="login-password">
           Senha
         </label>
         <input
@@ -71,12 +71,12 @@ export default function Login() {
           autoComplete="current-password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="border border-slate-300 rounded-md px-3 py-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+          className={`border ${BORDER} rounded-md px-3 py-2 ${FOCUS}`}
           required
         />
 
         {error && (
-          <p role="alert" className="text-red-600 text-sm">
+          <p role="alert" className={`${DANGER} text-sm`}>
             {error}
           </p>
         )}
@@ -84,15 +84,15 @@ export default function Login() {
         <button
           type="submit"
           disabled={submitting}
-          className="mt-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white rounded-md py-2.5 font-semibold cursor-pointer transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+          className={`mt-2 ${BRAND_BG} ${BRAND_BG_HOVER} ${DISABLED_PINK} disabled:cursor-not-allowed text-white rounded-md py-2.5 font-semibold cursor-pointer transition-colors ${FOCUS}`}
         >
           {submitting ? 'Entrando...' : 'Entrar'}
         </button>
       </form>
 
-      <p className="text-sm text-slate-600 mt-6 text-center">
+      <p className={`text-sm ${MUTED} mt-6 text-center`}>
         Ainda não tem conta?{' '}
-        <Link to="/signup" className="text-blue-600 hover:text-blue-700 font-medium">
+        <Link to="/signup" className={`${BRAND} ${BRAND_HOVER} font-medium`}>
           Cadastre-se
         </Link>
       </p>
