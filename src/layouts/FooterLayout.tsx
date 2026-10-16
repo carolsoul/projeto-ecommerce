@@ -1,6 +1,6 @@
 import { Link, Outlet } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
-import { BORDER, BRAND_BG, CREAM, FOCUS, HOVER_ON_BRAND, MUTED, ON_BRAND } from '../lib/theme';
+import { BRAND_BG, CREAM, FOCUS, HOVER_ON_BRAND, MUTED, ON_BRAND } from '../lib/theme';
 
 /**
  * Rodapé da loja.
