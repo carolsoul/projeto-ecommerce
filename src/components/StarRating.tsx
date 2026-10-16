@@ -4,7 +4,7 @@ const STAR_PATH =
 
 interface StarRatingProps {
   rating: number;
-  reviewCount: number;
+  reviewCount?: number;
 }
 
 export default function StarRating({ rating, reviewCount }: StarRatingProps) {
@@ -25,7 +25,9 @@ export default function StarRating({ rating, reviewCount }: StarRatingProps) {
           </svg>
         ))}
       </div>
-      <p className={`text-sm font-medium ${MUTED}`}>({reviewCount})</p>
+      {reviewCount !== undefined && (
+        <p className={`text-sm font-medium ${MUTED}`}>({reviewCount})</p>
+      )}
     </div>
   );
 }
