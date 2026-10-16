@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { BRAND, BRAND_BG, ON_BRAND, PINK, PINK_HOVER } from '../lib/theme';
 
 interface BannerProps {
@@ -40,13 +41,16 @@ export const Banner: React.FC<BannerProps> = ({
                     {title && <h2 className="text-4xl font-bold mb-2">{title}</h2>}
                     {subtitle && <p className="text-lg mb-4">{subtitle}</p>}
 
+                    {/* `Link`, não `<a href>`: âncora faz recarga completa da
+                        página e joga fora o estado da SPA (sessão, carrinho em
+                        memória, posição de rolagem). */}
                     {buttonText && buttonLink && (
-                        <a
-                            href={buttonLink}
+                        <Link
+                            to={buttonLink}
                             className={`${PINK} ${BRAND} font-semibold px-6 py-2 rounded-4xl ${PINK_HOVER} transition-colors`}
                         >
                             {buttonText}
-                        </a>
+                        </Link>
                     )}
                 </div>
             )}
