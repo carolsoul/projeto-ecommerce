@@ -11,11 +11,6 @@ const HEART_PATH = "M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7
 
 interface ProductCardProps {
   product: Product;
-  /**
-   * Classes extras no `<li>`. Existe para o carrossel de recomendados poder dar
-   * largura fixa ao card (`shrink-0 w-...`) sem duplicar o componente — na grade
-   * quem dimensiona é o `grid` do pai.
-   */
   className?: string;
 }
 

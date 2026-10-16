@@ -16,11 +16,6 @@ import ProductGrid from './ProductGrid';
 import { BORDER, BRAND, CARD, DANGER, DISABLED_SUBTLE, FOCUS, PINK_HOVER } from '../lib/theme';
 
 const PAGE_SIZE = 24;
-
-/**
- * Tamanho da coleção nova. Recorte curto de propósito: "novidades" é uma vitrine
- * do que acabou de chegar, não um segundo catálogo paginado.
- */
 const NEW_COLLECTION_SIZE = 12;
 
 interface ProductListProps {
@@ -85,7 +80,6 @@ export default function ProductList({ category = null, newOnly = false }: Produc
 
         setProducts(data);
         setCursor(lastDoc);
-        // A coleção nova é recorte fechado: não há "carregar mais" nela.
         setHasMore(!newOnly && docs.length === pageSize);
         setLoading(false);
       } catch {
