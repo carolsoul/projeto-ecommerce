@@ -34,6 +34,26 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // Avaliações de produto.
+    //
+    // Leitura aberta pelo mesmo motivo de `products`: a avaliação aparece na
+    // página pública do produto, antes de qualquer login.
+    //
+    // A escrita é negada para todo mundo, e não é excesso de zelo: a política é
+    // "só avalia quem comprou E recebeu", e isso não dá para expressar aqui.
+    // Validar exigiria um `get()` em `orders` dentro da regra — leitura cobrada,
+    // limitada a 10 por requisição, e o documento da avaliação nem sabe qual
+    // pedido o originou. Quem grava é /api/reviews, pelo Admin SDK, que ignora
+    // estas regras; a decisão vive em api/_lib/reviews.ts (`canReview`).
+    //
+    // O id do documento é `${uid}_${sku}` e a rota usa `create()`, então a
+    // segunda avaliação da mesma pessoa no mesmo produto colide e é recusada.
+
+    match /reviews/{reviewId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
     // Dados da pessoa: perfil, carrinho e favoritos. Cada uma só enxerga os
     // próprios. O wildcard cobre as subcoleções cart e wishlist.
 
