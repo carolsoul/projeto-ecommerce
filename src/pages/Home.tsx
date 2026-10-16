@@ -32,7 +32,7 @@ const Home: React.FC = () => {
                 />
 
                 <Banner 
-                imageUrl="https://plus.unsplash.com/premium_photo-1742833661693-d54d72a51b1a?q=80&w=997&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+                imageUrl="/nova-colecao-the-bush.jpg"
                 />
             </div>
 

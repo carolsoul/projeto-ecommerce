@@ -14,7 +14,6 @@ interface FooterLink {
 const STORE_LINKS: FooterLink[] = [
   { name: 'Coleção nova', to: '/?colecao=novidades' },
   { name: 'Todos os produtos', to: '/' },
-  { name: 'Favoritos', to: '/wishlist' },
   { name: 'Carrinho', to: '/cart' },
 ];
 
@@ -77,7 +76,7 @@ export default function FooterLayout() {
                   </div>
                </div>
 
-               <hr className={`${BORDER} my-8`} />
+               <hr className={`${MUTED} my-8`} />
 
                <div className="text-left">
                   <p className={`${MUTED} text-sm`}>

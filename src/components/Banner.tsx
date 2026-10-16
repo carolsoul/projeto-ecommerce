@@ -22,7 +22,7 @@ export const Banner: React.FC<BannerProps> = ({
     const hasOverlay = Boolean(title || subtitle || buttonText);
 
     return (
-        <section className={`relative w-full h-[500px] ${BRAND_BG} overflow-hidden rounded-lg my-6`}>
+        <section className={`relative w-full h-[500px] ${BRAND_BG} overflow-hidden rounded-lg sm:my-2 xl-my-6`}>
             {imageUrl && (
                 <img
                     src={imageUrl}

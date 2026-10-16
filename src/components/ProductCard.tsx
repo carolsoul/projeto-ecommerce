@@ -44,7 +44,7 @@ export default function ProductCard({ product, className = '' }: ProductCardProp
   return (
     <li className={`flex flex-col p-1.5 transition-all relative overflow-hidden ${className}`}>
       {discount !== null && (
-        <span className={`absolute top-2 left-2 z-10 ${BRAND_BG} text-white text-xs font-bold px-2 py-1 rounded`}>
+        <span className={`absolute top-2 left-2 z-10 bg-[#008000] text-white text-xs font-bold px-2 py-1 rounded`}>
           -{discount}%
         </span>
       )}
@@ -71,20 +71,20 @@ export default function ProductCard({ product, className = '' }: ProductCardProp
       </Link>
 
       <div className={`py-4 px-2 mt-2 rounded-lg text-left ${CARD}`}>
-          <h3 className={`text-sm sm:text-base font-semibold ${BRAND} line-clamp-2`}>{product.name}</h3>
+          <h3 className={`text-sm sm:text-base font-semibold ${BRAND} truncate`}>{product.name}</h3>
 
           <div className="mt-2">
             <p className={`${BRAND} font-semibold text-sm sm:text-base break-words`}>
               {product.mrp != null && (
-                <span className={`mr-1.5 ${MUTED} line-through`}>R${product.mrp.toFixed(2)}</span>
+                <span className={`mr-1.4 ${MUTED} line-through`}>R${product.mrp.toFixed(2)}</span>
               )}
               R${product.price.toFixed(2)}
             </p>
           </div>
 
           <div className="flex flex-col items-center mt-2">
-            <button type="button" onClick={handleAddToCart} className={`w-full px-6 py-2 text-white text-sm font-semibold rounded-4xl cursor-pointer ${BRAND_BG} ${PINK_HOVER} ${HOVER_BRAND} transition-colors focus:outline-none focus-visible:ring-2 ${RING}`} >
-              Adicionar ao carrinho
+            <button type="button" onClick={handleAddToCart} className={`w-full px-6 py-2 text-white font-semibold rounded-4xl cursor-pointer ${BRAND_BG} ${PINK_HOVER} ${HOVER_BRAND} transition-colors focus:outline-none focus-visible:ring-2 ${RING} `} >
+              Adicionar
             </button>
           </div>
         </div>
