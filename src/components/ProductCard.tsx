@@ -11,9 +11,15 @@ const HEART_PATH = "M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7
 
 interface ProductCardProps {
   product: Product;
+  /**
+   * Classes extras no `<li>`. Existe para o carrossel de recomendados poder dar
+   * largura fixa ao card (`shrink-0 w-...`) sem duplicar o componente — na grade
+   * quem dimensiona é o `grid` do pai.
+   */
+  className?: string;
 }
 
-export default function ProductCard({ product }: ProductCardProps) {
+export default function ProductCard({ product, className = '' }: ProductCardProps) {
   const discount = product.mrp != null ? getDiscountPercentage(product.price, product.mrp) : null;
 
   const { addItem } = useCart();
@@ -41,7 +47,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   };
   
   return (
-    <li className="flex flex-col p-1.5 transition-all relative overflow-hidden">
+    <li className={`flex flex-col p-1.5 transition-all relative overflow-hidden ${className}`}>
       {discount !== null && (
         <span className={`absolute top-2 left-2 z-10 ${BRAND_BG} text-white text-xs font-bold px-2 py-1 rounded`}>
           -{discount}%
