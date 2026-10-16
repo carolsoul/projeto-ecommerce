@@ -1,5 +1,7 @@
 import {
   Clock,
+  CheckCircle2Icon,
+  CreditCard,
   Package,
   PackageCheck,
   PackageX,
@@ -10,42 +12,15 @@ import {
 import type { LucideIcon } from 'lucide-react';
 import type { FulfillmentStatus, OrderStatus } from '../types/order';
 
-/**
- * Rótulos e transições de status, compartilhados pelas telas.
- *
- * Isto vivia dentro do Orders.tsx. Saiu de lá quando a terceira tela precisou
- * do mesmo mapa (histórico do cliente, fila do admin e detalhe do pedido) —
- * três cópias de "paid" → "Pago" divergiriam na primeira mudança de rótulo.
- *
- * Os dois eixos ficam em mapas separados, como no resto do projeto: pagamento e
- * entrega são ortogonais, e um pedido tem um status de cada ao mesmo tempo.
- */
-
 export interface StatusPresentation {
   label: string;
   className: string;
 }
 
-/**
- * O eixo da entrega carrega também um ícone, para o stepper da tela de
- * rastreamento.
- *
- * O campo guarda a REFERÊNCIA do componente (`Truck`), não o elemento
- * (`<Truck />`). Dois motivos: este arquivo é `.ts` e não aceita JSX, e o ícone
- * não pode vir do Firestore — lá moram dados, não JSX. O ícone é derivado do
- * status, igual ao rótulo e à cor.
- *
- * No uso, renomeie para maiúscula ao desestruturar:
- *   const { icon: Icon } = fulfillmentPresentation(event.status);
- *   <Icon className="size-4" aria-hidden="true" />
- * O JSX trata minúscula como tag HTML, então `<icon />` viraria um elemento
- * literal e silenciosamente não renderizaria nada.
- */
 export interface FulfillmentPresentation extends StatusPresentation {
   icon: LucideIcon;
 }
 
-/** Eixo do dinheiro: o que o webhook do Mercado Pago escreve em `status`. */
 export const PAYMENT_STATUS = {
   paid: {
     label: 'Pago',
@@ -57,7 +32,7 @@ export const PAYMENT_STATUS = {
   },
   pending: {
     label: 'Pendente',
-    className: 'bg-blue-100 text-slate-700',
+    className: 'bg-blue-100 text-blue-700',
   },
   failed: {
     label: 'Falhou',
@@ -69,8 +44,12 @@ export const PAYMENT_STATUS = {
   },
 } as const satisfies Record<OrderStatus, StatusPresentation>;
 
-/** Eixo da logística: o que a rota /api/admin/orders/tracking escreve. */
 export const FULFILLMENT_STATUS = {
+  placed: {
+    label: 'Pedido feito',
+    className: 'bg-blue-100 text-blue-700',
+    icon: CheckCircle2Icon,
+  },
   processing: {
     label: 'Preparando',
     className: 'bg-blue-100 text-blue-700',
@@ -98,23 +77,95 @@ export const FULFILLMENT_STATUS = {
   },
 } as const satisfies Record<FulfillmentStatus, FulfillmentPresentation>;
 
+/** 
+ * Passos visuais para a esteira de rastreamento (combine o pagamento e o fulfillment).
+ */
+export type TrackingStepKey = 'placed' | 'payment_confirmed' | 'processing' | 'shipped' | 'delivered';
+
+export interface TrackingStep {
+  key: TrackingStepKey;
+  label: string;
+  icon: LucideIcon;
+}
+
+export const TRACKING_STEPS: TrackingStep[] = [
+  { 
+    key: 'placed', 
+    label: 'Pedido feito', 
+    icon: CheckCircle2Icon, 
+  },
+  { 
+    key: 'payment_confirmed', 
+    label: 'Pagamento confirmado', 
+    icon: CreditCard, 
+  },
+  { 
+    key: 'processing', 
+    label: 'Em preparação', 
+    icon: Package 
+  },
+  { 
+    key: 'shipped', 
+    label: 'Despachado', 
+    icon: Truck 
+  },
+  {
+    key: 'delivered', 
+    label: 'Entregue', 
+    icon: PackageCheck 
+  },
+];
+
+export interface PaymentStepView {
+  label: string;
+  note: string;
+  className: string;
+}
+
+export function paymentStepView(status: OrderStatus | undefined): PaymentStepView {
+  if (status === 'paid') {
+    return {
+      label: 'Pagamento confirmado',
+      note: 'Concluído',
+      className: PAYMENT_STATUS.paid.className,
+    };
+  }
+
+  if (status === 'failed') {
+    return {
+      label: 'Pagamento não aprovado',
+      note: 'Não concluído',
+      className: PAYMENT_STATUS.failed.className,
+    };
+  }
+
+  if (status === 'cancelled') {
+    return {
+      label: 'Pagamento cancelado',
+      note: 'Não concluído',
+      className: PAYMENT_STATUS.cancelled.className,
+    };
+  }
+
+  // `pending` e `awaiting_payment` são o mesmo recado para quem comprou. A diferença entre os dois é interna.
+  return {
+    label: 'Aguardando pagamento',
+    note: 'Pendente',
+    className: PAYMENT_STATUS.awaiting_payment.className,
+  };
+}
+
 export const PAYMENT_STATUS_KEYS = Object.keys(PAYMENT_STATUS) as OrderStatus[];
 export const FULFILLMENT_STATUS_KEYS = Object.keys(
   FULFILLMENT_STATUS
 ) as FulfillmentStatus[];
 
-/**
- * Para status que o front não conhece: campo corrompido, ou um status novo no
- * servidor que esta versão do bundle ainda não viu. Dizer "não sei" é honesto;
- * cair num status real seria afirmar algo que pode ser falso.
- */
 export const UNKNOWN_STATUS: FulfillmentPresentation = {
   label: 'Status desconhecido',
   className: 'bg-slate-100 text-slate-700',
   icon: TriangleAlert,
 };
 
-/** Para o pedido que ainda não entrou na esteira de entrega. */
 export const NOT_STARTED_STATUS: FulfillmentPresentation = {
   label: 'Não iniciado',
   className: 'bg-slate-100 text-slate-600',
@@ -122,36 +173,69 @@ export const NOT_STARTED_STATUS: FulfillmentPresentation = {
 };
 
 export function paymentPresentation(status: unknown): StatusPresentation {
-  return PAYMENT_STATUS[status as OrderStatus] ?? UNKNOWN_STATUS;
+  if (status === undefined || status === null) {
+    return { label: 'Não pago', className: 'bg-slate-100 text-slate-600' };
+  }
+
+  const match = PAYMENT_STATUS[status as OrderStatus];
+  if (match) return match;
+
+  return { label: UNKNOWN_STATUS.label, className: UNKNOWN_STATUS.className };
 }
 
-/**
- * `undefined`/`null` devolve "Não iniciado" em vez de "desconhecido": a ausência
- * do campo é o estado legítimo dos pedidos gravados antes do fulfillment
- * existir, e de qualquer pedido que ainda não foi pago.
- *
- * O retorno sempre traz `icon`, inclusive nos dois fallbacks — assim o stepper
- * nunca precisa de `?? algumCoisa` no meio do JSX.
- */
 export function fulfillmentPresentation(status: unknown): FulfillmentPresentation {
   if (status === undefined || status === null) return NOT_STARTED_STATUS;
 
   return FULFILLMENT_STATUS[status as FulfillmentStatus] ?? UNKNOWN_STATUS;
 }
 
+export function getTrackingStepState(
+  stepKey: TrackingStepKey,
+  paymentStatus: OrderStatus | undefined,
+  fulfillmentStatus: FulfillmentStatus | undefined
+): 'completed' | 'current' | 'upcoming' {
+  const isPaid = paymentStatus === 'paid';
+  
+  // Ordem de precedência para saber em qual passo a UI se encontra
+  if (fulfillmentStatus === 'delivered') {
+    return 'completed';
+  }
+
+  if (fulfillmentStatus === 'shipped') {
+    if (stepKey === 'delivered') return 'upcoming';
+    if (stepKey === 'shipped') return 'current';
+    return 'completed';
+  }
+
+  if (fulfillmentStatus === 'processing') {
+    if (stepKey === 'shipped' || stepKey === 'delivered') return 'upcoming';
+    if (stepKey === 'processing') return 'current';
+    return 'completed';
+  }
+
+  if (isPaid) {
+    if (stepKey === 'placed' || stepKey === 'payment_confirmed') return 'completed';
+    if (stepKey === 'processing') return 'current'; // Pagou, então o próximo passo ativo é a preparação
+    return 'upcoming';
+  }
+
+  // Se ainda não pagou
+  if (stepKey === 'placed') return 'completed';
+  if (stepKey === 'payment_confirmed') return 'current'; // Aguardando pagamento
+  return 'upcoming';
+}
+
 /**
  * Cópia cliente da máquina de estados de `api/_lib/fulfillment.ts`.
  *
- * A duplicação é deliberada: `api/` não pode ser importado por `src/` (o
- * tsconfig.app.json só inclui `src`, e o servidor não deve depender do
- * cliente). Os papéis também são diferentes — esta cópia decide **o que
- * oferecer** no formulário, a do servidor decide **o que permitir** dentro da
- * transaction. Filtrar aqui é conveniência de interface, nunca segurança.
- *
- * Se as duas divergirem, o servidor recusa com 409 e mensagem legível, que é o
- * lado certo para errar. Mas mantenha-as iguais.
+ * `placed` aparece aqui apenas porque o `Record<FulfillmentStatus, ...>` exige
+ * uma entrada para cada membro do tipo — e vai VAZIA de propósito. Ele é um
+ * degrau visual do TRACKING_STEPS, não um estado que alguém grava: nada escreve
+ * `fulfillment.status = 'placed'`, e o servidor sequer o reconhece. Oferecê-lo
+ * no formulário do admin produziria um 400 na rota de tracking.
  */
 const ALLOWED_TRANSITIONS: Record<FulfillmentStatus, FulfillmentStatus[]> = {
+  placed: [],
   processing: ['shipped'],
   shipped: ['delivered', 'delivery_failed'],
   delivered: ['returned'],
@@ -159,48 +243,9 @@ const ALLOWED_TRANSITIONS: Record<FulfillmentStatus, FulfillmentStatus[]> = {
   returned: [],
 };
 
-/**
- * De onde um pedido SEM estado de entrega pode partir.
- *
- * `shipped` está aqui junto de `processing` para os pedidos antigos, que nunca
- * tiveram o campo `fulfillment` — sem essa porta eles ficariam presos, já que
- * ninguém nunca marcou `processing` neles.
- */
 const ALLOWED_FIRST_STATUSES: FulfillmentStatus[] = ['processing', 'shipped'];
 
-/**
- * O caminho canônico de um pedido normal.
- *
- * É uma LINHA, diferente do ALLOWED_TRANSITIONS, que é um grafo com ramos. O
- * stepper da tela de rastreamento é linear, então ele precisa de uma linha.
- *
- * Serve só para apresentação: nada disso é gravado no Firestore, que continua
- * guardando apenas o que aconteceu. Quem decide o que PODE acontecer é o
- * canTransition no servidor.
- *
- * As exceções (`delivery_failed`, `returned`) ficam de fora de propósito. Elas
- * ramificam — de `delivery_failed` dá para voltar a `shipped` ou ir para
- * `returned`, e os dois são mutuamente exclusivos — e uma linha não representa
- * ramo. O lugar delas é um bloco de aviso acima do stepper, não um passo dentro
- * dele.
- */
-export const HAPPY_PATH: FulfillmentStatus[] = ['processing', 'shipped', 'delivered'];
 
-/** Os passos do caminho canônico que ainda não aconteceram. */
-export function remainingSteps(
-  current: FulfillmentStatus | null | undefined
-): FulfillmentStatus[] {
-  if (current === undefined || current === null) return HAPPY_PATH;
-
-  const index = HAPPY_PATH.indexOf(current);
-  // Status fora do caminho canônico (uma exceção) não tem "próximo passo"
-  // previsível: vira aviso, não passo.
-  if (index === -1) return [];
-
-  return HAPPY_PATH.slice(index + 1);
-}
-
-/** Os estados que o `select` do formulário deve oferecer. */
 export function nextStatusesFor(
   current: FulfillmentStatus | null | undefined
 ): FulfillmentStatus[] {

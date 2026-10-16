@@ -76,4 +76,4 @@ export interface TrackingEvent {
 }
 
 export type OrderStatus = 'pending' | 'awaiting_payment' | 'paid' | 'failed' | 'cancelled'; 
-export type FulfillmentStatus = 'processing' | 'shipped' | 'delivered' | 'delivery_failed' | 'returned';
+export type FulfillmentStatus = 'placed' | 'processing' | 'shipped' | 'delivered' | 'delivery_failed' | 'returned';

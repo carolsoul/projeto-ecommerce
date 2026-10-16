@@ -9,10 +9,19 @@ import {
   paymentPresentation,
 } from '../lib/orderStatus';
 import { OrderHistoryItem } from '../components/OrderHistoryItem';
-import { Link } from 'react-router-dom';
-import { BORDER, BRAND, BRAND_BG, BRAND_BG_HOVER, BRAND_BORDER, CARD, CREAM, FOCUS, MUTED, ON_BRAND, PINK_HOVER, SUBTLE } from '../lib/theme';
+import { Link, useNavigate } from 'react-router-dom';
+import { useCart } from '../context/useCart';
+import { loadReorderLines } from '../lib/reorder';
+import { BORDER, BRAND, BRAND_BG, BRAND_BG_HOVER, BRAND_BORDER, CARD, CREAM, DANGER, DISABLED_SUBTLE, FOCUS, MUTED, ON_BRAND, PINK_HOVER, SUBTLE } from '../lib/theme';
 
 type Phase = 'loading' | 'ready' | 'unauthenticated' | 'missing' | 'denied' | 'empty';
+
+/** Aviso do "Pedir novamente", preso ao pedido que o gerou. */
+interface ReorderNotice {
+  orderId: string;
+  message: string;
+  isError: boolean;
+}
 
 const ORDERS_SCAN_LIMIT = 10;
 
@@ -21,6 +30,9 @@ const BUTTON_BASE =
 const BUTTON_IDLE = `${CARD} ${BRAND} ${BORDER} ${PINK_HOVER}`;
 const BUTTON_ACTIVE = `${BRAND_BG} ${ON_BRAND} ${BRAND_BORDER} ${BRAND_BG_HOVER}`;
 
+const ACTION_BUTTON =
+  `flex items-center gap-2.5 px-3.5 py-2 ${BRAND} text-sm font-medium rounded-md ${CARD} border ${BORDER} ${PINK_HOVER} ${FOCUS}`;
+
 const dateFormatter = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short' });
 
 export default function Orders() {
@@ -28,6 +40,10 @@ export default function Orders() {
   const [phase, setPhase] = useState<Phase>('loading');
   const [orders, setOrders] = useState<Order[]>([]);
   const [selectedStatus, setSelectedStatus] = useState<OrderStatus | 'all'>('all');
+  const [reorderingId, setReorderingId] = useState<string | null>(null);
+  const [reorderNotice, setReorderNotice] = useState<ReorderNotice | null>(null);
+  const navigate = useNavigate();
+  const { addItem } = useCart();
 
   useEffect(() => {
     if (authLoading) {
@@ -67,6 +83,54 @@ export default function Orders() {
 
     return () => unsubscribe();
   }, [user, authLoading]);
+
+  /**
+   * Repete o pedido: devolve os itens ao carrinho com o preço de HOJE e leva
+   * para o carrinho.
+   */
+  const handleReorder = async (order: Order) => {
+    setReorderingId(order.id);
+    setReorderNotice(null);
+
+    try {
+      const { lines, missing } = await loadReorderLines(order.items ?? []);
+
+      for (const line of lines) {
+        await addItem(line.product, line.quantity);
+      }
+
+      if (lines.length === 0) {
+        setReorderNotice({
+          orderId: order.id,
+          message: 'Nenhum item deste pedido está disponível no momento.',
+          isError: true,
+        });
+        setReorderingId(null);
+        return;
+      }
+
+      if (missing.length > 0) {
+        setReorderNotice({
+          orderId: order.id,
+          message: `Adicionado ao carrinho. Fora de catálogo: ${missing.join(', ')}.`,
+          isError: false,
+        });
+        setReorderingId(null);
+        return;
+      }
+
+      setReorderingId(null);
+      navigate('/cart');
+    } catch (error) {
+      console.error('Não foi possível repetir o pedido:', error);
+      setReorderNotice({
+        orderId: order.id,
+        message: 'Não foi possível repetir o pedido. Tente novamente.',
+        isError: true,
+      });
+      setReorderingId(null);
+    }
+  };
 
   // O filtro roda em memória porque a lista inteira já está aqui
   const visibleOrders = useMemo(
@@ -202,16 +266,31 @@ export default function Orders() {
                         </li>
                       ))}
 
-                      <li className='mt-6 flex flex-wrap gap-4'>
-                        {["Ver  datalhes", "Pedir novamente"].map((action) => (
-                          <Link
-                            key={action}
-                            to={action === "Ver  datalhes" ? `/orders/${order.id}` : `/orders/${order.id}/reorder`}
-                            className={`flex items-center gap-2.5 px-3.5 py-2 ${BRAND} text-sm font-medium rounded-md ${CARD} border ${BORDER} ${PINK_HOVER} ${FOCUS}`}
-                          > 
-                          {action}
-                          </Link>
-                        ))}
+                      <li className='mt-6 flex flex-wrap items-center gap-4'>
+                        <Link
+                          to={`/orders/${order.id}`}
+                          className={ACTION_BUTTON}
+                        >
+                          Ver detalhes
+                        </Link>
+
+                        <button
+                          type="button"
+                          onClick={() => handleReorder(order)}
+                          disabled={reorderingId !== null}
+                          className={`${ACTION_BUTTON} cursor-pointer disabled:cursor-not-allowed ${DISABLED_SUBTLE}`}
+                        >
+                          {reorderingId === order.id ? 'Adicionando...' : 'Pedir novamente'}
+                        </button>
+
+                        {reorderNotice !== null && reorderNotice.orderId === order.id && (
+                          <p
+                            role="status"
+                            className={`text-sm ${reorderNotice.isError ? DANGER : MUTED}`}
+                          >
+                            {reorderNotice.message}
+                          </p>
+                        )}
                       </li>
 
                     </ul>

@@ -4,7 +4,7 @@ import { collection, query, orderBy, onSnapshot, doc } from 'firebase/firestore'
 import { useAuth } from '../context/useAuth';
 import type { Order, TrackingEvent } from '../types/order';
 import { OrderItemImage } from '../components/OrderItemImage';
-import { fulfillmentPresentation, paymentPresentation, remainingSteps } from '../lib/orderStatus';
+import { fulfillmentPresentation, paymentPresentation, paymentStepView, TRACKING_STEPS, getTrackingStepState } from '../lib/orderStatus';
 import { useParams } from 'react-router-dom';
 import { BORDER, BRAND, CARD, DANGER, DIVIDE, LG_BORDER, MUTED, RING_GAP, SUBTLE } from '../lib/theme';
 
@@ -115,7 +115,12 @@ export default function OrderTracking() {
         return <p>Pedido não encontrado.</p>;
     }
 
-    const futureSteps = [...remainingSteps(order.fulfillment?.status)].reverse();
+    // A esteira é uma escada fixa de cinco degraus 
+    // Os eventos entram como detalhe (data, descrição, local) do degrau que lhes corresponde; os degraus sem evento ainda aparecem, com o estado derivado dos dois eixos por `getTrackingStepState`.
+    const eventByStatus = new Map(events.map((event) => [event.status, event]));
+
+    // O degrau de pagamento tem rótulo próprio, derivado de `order.status`
+    const paymentStep = paymentStepView(order.status);
 
     return (
         <main className='mt-6 px-4 md:px-8'>
@@ -209,58 +214,74 @@ export default function OrderTracking() {
                         <h2 id="timeline-heading" className="sr-only">Rastreamento do pedido</h2>
                         {eventsFailed ? (
                             <p className={`mt-2 text-sm ${DANGER}`}>Não foi possível carregar o rastreamento do pedido.</p>
-                        ) : events.length === 0 && futureSteps.length === 0 ? (
-                            <p className='mt-2 text-sm'>Nenhum evento registrado</p>
                         ) : (
                             <>
                                 {(order.fulfillment?.status === 'delivery_failed' || order.fulfillment?.status === 'returned') && (
                                     <div className='mb-6 rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700'>
-                                        {fulfillmentPresentation(order.fulfillment?.status).label} — entre em contato com o suporte.
+                                        {fulfillmentPresentation(order.fulfillment.status).label} — entre em contato com o suporte.
                                     </div>
                                 )}
 
-                                <ol className={`relative border-s ${BORDER}`} aria-current='step'>
-                                    {futureSteps.map((status) => {
-                                        const { label, icon: Icon } = fulfillmentPresentation(status);
-
-                                        return (
-                                            <li key={status} className='mb-10 ms-7 opacity-50'>
-                                                <span className={`absolute -start-3.5 flex h-7 w-7 items-center justify-center rounded-full ${CARD} ${SUBTLE} ring-8 ${RING_GAP}`}>
-                                                    <Icon className='size-4' aria-hidden='true' />
-                                                </span>
-                                                <p className={`mb-0.5 text-sm ${SUBTLE}`}>Previsto</p>
-                                                <p className={`text-base font-medium ${SUBTLE}`}>{label}</p>
-                                            </li>
+                                <ol className={`relative border-s ${BORDER}`}>
+                                    {TRACKING_STEPS.map((step) => {
+                                        const state = getTrackingStepState(
+                                            step.key,
+                                            order.status,
+                                            order.fulfillment?.status
                                         );
-                                    })}
+                                        const Icon = step.icon;
 
-                                    {events.map((event) => {
-                                        const { label, className, icon: Icon } = fulfillmentPresentation(event.status);
-                                        const occurredAt = event.occurredAt?.toDate() ?? null;
+                                        const event =
+                                            step.key === 'placed' || step.key === 'payment_confirmed'
+                                                ? undefined
+                                                : eventByStatus.get(step.key);
+
+                                        const at =
+                                            step.key === 'placed'
+                                                ? (order.createdAt?.toDate() ?? null)
+                                                : (event?.occurredAt?.toDate() ?? null);
+
+                                        let stepNote = 'Concluído';
+                                        if (step.key === 'payment_confirmed') {
+                                            stepNote = paymentStep.note;
+                                        } else if (state === 'upcoming') {
+                                            stepNote = 'Previsto';
+                                        } else if (state === 'current') {
+                                            stepNote = 'Em andamento';
+                                        }
 
                                         return (
-                                            <li key={event.id} className='mb-10 ms-7'>
-                                                <span className={`absolute -start-3.5 flex h-7 w-7 items-center justify-center rounded-full ring-8 ${RING_GAP} ${className}`}>
+                                            <li key={step.key} className={`mb-10 ms-7 ${state === 'upcoming' ? 'opacity-60' : ''}`}>
+                                                <span
+                                                    className={`absolute -start-3.5 flex h-7 w-7 items-center justify-center rounded-full ring-8 ${RING_GAP} ${
+                                                        state === 'upcoming'
+                                                            ? `${CARD} ${SUBTLE}`
+                                                            : step.key === 'payment_confirmed'
+                                                              ? paymentStep.className
+                                                              : fulfillmentPresentation(step.key).className
+                                                    }`}
+                                                    aria-current={state === 'current' ? 'step' : undefined}
+                                                >
                                                     <Icon className='size-4' aria-hidden='true' />
                                                 </span>
 
-                                                <p className={`mb-0.5 text-sm ${MUTED}`}>
-                                                    {occurredAt ? (
-                                                        <time dateTime={occurredAt.toISOString()}>
-                                                            {dateFormatter.format(occurredAt)}
-                                                        </time>
+                                                <p className={`mb-0.5 text-sm ${state === 'upcoming' ? SUBTLE : MUTED}`}>
+                                                    {at ? (
+                                                        <time dateTime={at.toISOString()}>{dateFormatter.format(at)}</time>
                                                     ) : (
-                                                        'Registrando...'
+                                                        stepNote
                                                     )}
                                                 </p>
 
-                                                <p className={`text-base font-semibold ${BRAND}`}>{label}</p>
+                                                <p className={`text-base font-semibold ${state === 'upcoming' ? SUBTLE : BRAND}`}>
+                                                    {step.key === 'payment_confirmed' ? paymentStep.label : step.label}
+                                                </p>
 
-                                                {event.description && (
+                                                {event?.description && (
                                                     <p className={`text-sm font-normal ${MUTED}`}>{event.description}</p>
                                                 )}
 
-                                                {event.location && (
+                                                {event?.location && (
                                                     <p className={`mt-1 text-xs ${SUBTLE}`}>{event.location}</p>
                                                 )}
                                             </li>
