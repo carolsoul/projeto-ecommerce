@@ -101,14 +101,16 @@ export default function ProductView({ product }: ProductViewProps) {
               <div className='py-5'>
                   <p className={`${BRAND} font-bold text-2xl md:text-2xl`}>Descrição</p>
                   <p className={`${BRAND} text-lg`}>
-                    Descrição do produto aqui
+                    {product.description}
                   </p>
               </div>
               <div className='py-5'>
                   <p className={`${BRAND} font-bold text-2xl md:text-2xl`}>Características</p>
-                  <p className={`${BRAND} text-lg`}>
-                    Características do produto aqui
-                  </p>
+                  <ul className={`${BRAND} text-lg list-disc pl-5`}>
+                    {product.features.map((feature, index) => (
+                      <li key={index}>{feature}</li>
+                    ))}
+                  </ul>
               </div>
             </div>
 
@@ -136,10 +138,9 @@ export default function ProductView({ product }: ProductViewProps) {
               </button>
             </div>
 
-            {/* add localização de entrega, accordion de detalhes, reviews depois*/}
           </div>
         </div>
-        <div className={`flex ${BRAND_BG} my-8 py-8 px-6 rounded-2xl`}>
+        <div className={`inset-0 flex justify-center items-start p-8 bg-black rounded-2xl`}>
               
               <div className="flex flex-wrap gap-4 mb-6">
 
@@ -152,7 +153,7 @@ export default function ProductView({ product }: ProductViewProps) {
               </button>
               </div>
 
-              <img src="https://plus.unsplash.com/premium_photo-1742833661693-d54d72a51b1a?q=80&w=997&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Gift-card-the-bush" className='rounded-3xl w-full overflow-hidden object-cover' />
+              <img src="/gift-card-the-bush.jpg" alt="Gift-card-the-bush" className='rounded-3xl w-full overflow-hidden object-cover' />
             </div>
 
             <RecommendedProducts excludeSku={product.id} />

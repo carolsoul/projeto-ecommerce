@@ -36,41 +36,68 @@ interface Access {
 }
 
 /**
- * Lista e média, nas duas consultas que o índice
- * `reviews (sku ASC, createdAt DESC)` atende.
+ * A média do produto, calculada no servidor.
+ *
+ * `average('rating')` em vez de somar os itens carregados: com o limite de
+ * página, somar aqui daria a média das 10 primeiras avaliações, não a do produto.
+ *
+ * Exige o índice composto `reviews (sku ASC, rating ASC)` — e isso é fácil de
+ * errar. `count()` com filtro de igualdade é resolvido pelo índice automático,
+ * mas `average`/`sum` precisam do CAMPO AGREGADO no índice junto do campo
+ * filtrado. Sem ele vem `failed-precondition`, não resultado vazio.
+ *
+ * Devolve `null` em vez de propagar o erro: a média é acessório da seção, e
+ * derrubar a lista inteira por causa dela é pior do que exibir a lista sem o
+ * resumo no topo.
+ */
+async function loadSummary(sku: string): Promise<Summary | null> {
+  try {
+    const snapshot = await getAggregateFromServer(
+      query(collection(db, 'reviews'), where('sku', '==', sku)),
+      { total: count(), average: average('rating') }
+    );
+
+    const total = snapshot.data().total;
+    const averageRating = snapshot.data().average;
+
+    // `average()` devolve null quando não há documento que case o filtro.
+    let safeAverage = 0;
+    if (typeof averageRating === 'number') {
+      safeAverage = averageRating;
+    }
+
+    return { total, average: safeAverage };
+  } catch (error) {
+    console.error('Não foi possível calcular a média das avaliações:', error);
+    return null;
+  }
+}
+
+/**
+ * Lista e média.
  *
  * `getDocs` e não `onSnapshot`: avaliação não muda enquanto a pessoa lê a
  * página. O tempo real do projeto é para carrinho, pedidos e rastreamento, onde
  * o estado muda sozinho.
  *
- * A média vem de `average('rating')` calculada no servidor, não da soma dos
- * itens carregados — com o limite de página, somar aqui daria a média das 10
- * primeiras, não a do produto.
+ * A listagem usa o índice `reviews (sku ASC, createdAt DESC)`; a média usa outro,
+ * e só a falha da LISTAGEM é propagada.
  */
-async function loadReviews(sku: string): Promise<{ reviews: Review[]; summary: Summary }> {
-  const reviewsRef = collection(db, 'reviews');
-  const bySku = where('sku', '==', sku);
-
+async function loadReviews(
+  sku: string
+): Promise<{ reviews: Review[]; summary: Summary | null }> {
   const listSnap = await getDocs(
-    query(reviewsRef, bySku, orderBy('createdAt', 'desc'), limit(REVIEWS_PAGE_SIZE))
+    query(
+      collection(db, 'reviews'),
+      where('sku', '==', sku),
+      orderBy('createdAt', 'desc'),
+      limit(REVIEWS_PAGE_SIZE)
+    )
   );
 
-  const aggregateSnap = await getAggregateFromServer(query(reviewsRef, bySku), {
-    total: count(),
-    average: average('rating'),
-  });
-
   const reviews = listSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() })) as Review[];
-  const total = aggregateSnap.data().total;
-  const averageRating = aggregateSnap.data().average;
 
-  // `average()` devolve null numa coleção vazia.
-  let safeAverage = 0;
-  if (typeof averageRating === 'number') {
-    safeAverage = averageRating;
-  }
-
-  return { reviews, summary: { total, average: safeAverage } };
+  return { reviews, summary: await loadSummary(sku) };
 }
 
 /**
@@ -118,14 +145,14 @@ async function loadAccess(uid: string, sku: string): Promise<Access> {
   return { canReview: false, alreadyReviewed: false };
 }
 
-const EMPTY_SUMMARY: Summary = { total: 0, average: 0 };
 const NO_ACCESS: Access = { canReview: false, alreadyReviewed: false };
 
 /** Resultado carregado, marcado com o que o originou. */
 interface LoadedReviews {
   sku: string;
   reviews: Review[];
-  summary: Summary;
+  /** `null` quando a agregação falhou — a lista continua válida. */
+  summary: Summary | null;
   error: string | null;
 }
 
@@ -160,7 +187,7 @@ export default function ProductReviews({ sku }: ProductReviewsProps) {
           setLoaded({
             sku,
             reviews: [],
-            summary: EMPTY_SUMMARY,
+            summary: null,
             error: 'Não foi possível carregar as avaliações.',
           });
         }
@@ -202,7 +229,7 @@ export default function ProductReviews({ sku }: ProductReviewsProps) {
   const current = loaded !== null && loaded.sku === sku ? loaded : null;
   const loading = current === null;
   const reviews = current === null ? [] : current.reviews;
-  const summary = current === null ? EMPTY_SUMMARY : current.summary;
+  const summary = current === null ? null : current.summary;
   const error = current === null ? null : current.error;
 
   const accessMatches =
@@ -222,7 +249,7 @@ export default function ProductReviews({ sku }: ProductReviewsProps) {
         Avaliações
       </h2>
 
-      {summary.total > 0 && (
+      {summary !== null && summary.total > 0 && (
         <div className="mt-4 flex flex-wrap items-center gap-4">
           <StarRating rating={summary.average} reviewCount={summary.total} />
           <p className={`text-sm ${MUTED}`}>
@@ -286,7 +313,7 @@ export default function ProductReviews({ sku }: ProductReviewsProps) {
         </ul>
       )}
 
-      {summary.total > reviews.length && (
+      {summary !== null && summary.total > reviews.length && (
         <p className={`mt-6 text-center text-sm ${SUBTLE}`}>
           Mostrando as {reviews.length} avaliações mais recentes de {summary.total}.
         </p>
