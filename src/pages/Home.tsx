@@ -11,6 +11,7 @@ const Home: React.FC = () => {
     const searchTerm = (searchParams.get('q') ?? '').trim();
     const categoryParam = (searchParams.get('categoria') ?? '').trim();
     const category = categoryParam === '' ? null : categoryParam;
+    const newOnly = (searchParams.get('colecao') ?? '').trim() === 'novidades';
 
     if (searchTerm !== '') {
         return (
@@ -27,7 +28,7 @@ const Home: React.FC = () => {
                 title="The Bush."
                 subtitle="Escolha itens de uma coleção retrô estilosa com modelos únicos e diferentes cores e formas."
                 buttonText="Confira Agora"
-                buttonLink="#"
+                buttonLink="/?colecao=novidades"
                 />
 
                 <Banner 
@@ -36,7 +37,11 @@ const Home: React.FC = () => {
             </div>
 
             <ProductCategory activeCategory={category} />
-            <ProductList key={category ?? 'todas'} category={category} />
+            <ProductList
+              key={`${category ?? 'todas'}-${newOnly ? 'novidades' : 'tudo'}`}
+              category={category}
+              newOnly={newOnly}
+            />
         </main>
     )
 }
