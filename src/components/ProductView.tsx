@@ -1,6 +1,8 @@
 import { useNavigate, Link } from 'react-router-dom';
 import { type Product } from '../types/products';
 import StarRating from './StarRating';
+import ProductReviews from './ProductReviews';
+import RecommendedProducts from './RecommendedProducts';
 import { getDiscountPercentage } from '../utils/pricing';
 
 import { useCart } from '../context/useCart';
@@ -153,15 +155,9 @@ export default function ProductView({ product }: ProductViewProps) {
               <img src="https://plus.unsplash.com/premium_photo-1742833661693-d54d72a51b1a?q=80&w=997&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Gift-card-the-bush" className='rounded-3xl w-full overflow-hidden object-cover' />
             </div>
 
-            <div className="">
-              <p className={`text-4xl font-bold ${BRAND}`}>Você pode gostar</p>
-              {/*Produtos Populares com slide horizontal */}
-            </div>
+            <RecommendedProducts excludeSku={product.id} />
 
-            <div className="">
-              <p className={`text-4xl font-bold ${BRAND}`}>Avaliações</p>
-              {/*Avaliações do produto */}
-            </div>
+            <ProductReviews sku={product.id} />
       </div>
     </section>
   );
