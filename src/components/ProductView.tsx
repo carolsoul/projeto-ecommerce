@@ -140,7 +140,7 @@ export default function ProductView({ product }: ProductViewProps) {
 
           </div>
         </div>
-        <div className={`inset-0 flex justify-center items-start p-8 bg-black rounded-2xl`}>
+        <div className={`flex justify-center items-start p-8 bg-black rounded-2xl`}>
               
               <div className="flex flex-wrap gap-4 mb-6">
 
@@ -153,7 +153,7 @@ export default function ProductView({ product }: ProductViewProps) {
               </button>
               </div>
 
-              <img src="/gift-card-the-bush.jpg" alt="Gift-card-the-bush" className='rounded-3xl w-full overflow-hidden object-cover' />
+              <img src="/gift-card-the-bush.jpg" alt="Gift-card-the-bush" className='rounded-3xl w-full h-full overflow-hidden object-cover' />
             </div>
 
             <RecommendedProducts excludeSku={product.id} />
