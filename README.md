@@ -302,10 +302,7 @@ Sem o CLI, o caminho manual continua valendo: na primeira vez que a consulta rod
 
 Funcionalidades já previstas no código (rotas/arquivos comentados ou placeholders) mas ainda não implementadas:
 
-- **Checkout e pagamento** — `CheckoutLayout` existe, as rotas estão comentadas em `App.tsx`
 - **Login por celular** — o Firebase não tem provedor de telefone + senha: ou é SMS com código (passwordless, exige reCAPTCHA e custa por mensagem), ou se deriva um e-mail sintético do número. Decisão adiada
 - **Página de perfil** (`/perfil`) — o cadastro já grava `name` e `email` em `users/{uid}`, mas não há tela para editar
 - **Recuperação de senha** — falta `sendPasswordResetEmail`
-- **Pedidos** (`/orders`)
-- **Dashboard admin** (`AdminDashboard`)
-- Frete e taxa no carrinho são **valores fixos** (`SHIPPING` e `TAX` em `src/pages/Cart.tsx`)
+
